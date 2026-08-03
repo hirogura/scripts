@@ -7,6 +7,60 @@
 | スクリプト | 説明 |
 |-----------|------|
 | `install-codeserver.sh` | Code-Server（VS Code ブラウザ版）を Ubuntu 26.04 にインストール。localhost のみで待受し、Tailscale serve で tailnet 内のみ HTTPS 公開。Japanese Language Pack と日本語設定を自動適用 |
+| `install-immich.sh` | Immich（写真管理）を Docker でインストール。PostgreSQL / Redis / Machine Learning 込み。Tailscale serve で tailnet 内のみ HTTPS 公開 |
+
+---
+
+## install-immich.sh
+
+### 前提条件
+
+- Docker がインストール済み
+- Tailscale が `up` 済み（tailnet 内のみ HTTPS 公開するため）
+- Tailscale 管理コンソールで HTTPS Certificates を有効化済み（https://login.tailscale.com/admin/dns）
+- 実行時に root 権限が必要（`sudo`）
+
+### インストール方法（GitHub から）
+
+#### 方法1: ダウンロードして実行（推奨）
+
+```bash
+curl -fsSL -o /tmp/install-immich.sh \
+  https://raw.githubusercontent.com/hirogura/scripts/main/install-immich.sh
+sudo bash /tmp/install-immich.sh
+```
+
+#### 方法2: ワンライナー（パイプ実行）
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/hirogura/scripts/main/install-immich.sh \
+  | sudo bash
+```
+
+### インストール後にできること
+
+- ブラウザから `https://<Tailscaleのマシン名>:3307` にアクセスすると Immich が開きます（tailnet 内のデバイスからのみ）。
+- 初回アクセス時に管理者アカウントを作成します。
+- 写真データは `/opt/lxd-data/immich-library/`（ユーザー名フォルダ直下）に保存されます。
+
+### アンインストール方法
+
+```bash
+# 1. コンテナを停止・削除（データボリュームも削除）
+cd /opt/docker/immich
+sudo docker compose down -v
+
+# 2. Tailscale serve の設定を削除
+sudo tailscale serve --https=3307 off
+
+# 3. 設定ファイル・DBデータ・キャッシュを削除
+sudo rm -rf /opt/docker/immich
+
+# 4. 写真データを削除（残したい場合はスキップ）
+sudo rm -rf /opt/lxd-data/immich-library
+```
+
+> 手順 4 の写真データは削除すると復元できません。残したい場合はスキップしてください。
 
 ---
 
