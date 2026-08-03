@@ -42,8 +42,11 @@ curl -fsSL https://raw.githubusercontent.com/hirogura/scripts/main/install-codes
 
 - ブラウザから `https://<Tailscaleのマシン名>:8089` にアクセスすると VS Code が開きます（tailnet 内のデバイスからのみ）。
 - ログイン時に入力したパスワードでログインします（`~/.config/code-server/config.yaml` にも保存されています）。
-- 日本語 UI はインストール時に設定済みです。
+- 日本語 UI は上のバーで下記を入力して「日本語」を選択。
 
+```bash
+>Configure Display Language
+```
 ### アンインストール方法
 
 ```bash
