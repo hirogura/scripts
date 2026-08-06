@@ -9,6 +9,7 @@
 | `install-codeserver.sh` | Code-Server（VS Code ブラウザ版）を Ubuntu 26.04 にインストール。localhost のみで待受し、Tailscale serve で tailnet 内のみ HTTPS 公開。Japanese Language Pack と日本語設定を自動適用 |
 | `antix-install-codeserver.sh` | Code-Server を antiX（runit 環境）にインストール。root レベル runit サービスで再起動後も自動起動。Tailscale serve で tailnet 内のみ HTTPS 公開 |
 | `install-immich.sh` | Immich（写真管理）を Docker でインストール。PostgreSQL / Redis / Machine Learning 込み。Tailscale serve で tailnet 内のみ HTTPS 公開 |
+| `antix-ibus-mozc.sh` | 日本語入力（ibus + Mozc）を antiX（desktop-session）にセットアップ。切り替えキーに半角/全角を追加し、起動時のデフォルトをひらがなに設定 |
 
 ---
 
@@ -192,6 +193,71 @@ rm -rf ~/.cache/code-server
 ```
 
 > `~/.config/code-server/config.yaml` にはパスワードが含まれているため、削除前に安全な場所へ保管するか、ログアウト等の準備をしてください。
+
+---
+
+## antix-ibus-mozc.sh
+
+### 前提条件
+
+- antiX（IceWM / Fluxbox 等の desktop-session を使用）
+- デスクトップセッション（`~/.desktop-session`）と gsettings を設定するため、**通常ユーザーで実行**してください（内部で必要な `sudo` は自動実行されます）
+- パッケージインストールのためインターネット接続が必要
+
+### インストール方法（GitHub から）
+
+#### 方法1: ダウンロードして実行（推奨）
+
+```bash
+curl -fsSL -o /tmp/antix-ibus-mozc.sh \
+  https://raw.githubusercontent.com/hirogura/scripts/main/antix-ibus-mozc.sh
+bash /tmp/antix-ibus-mozc.sh
+```
+
+#### 方法2: ワンライナー（パイプ実行）
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/hirogura/scripts/main/antix-ibus-mozc.sh \
+  | bash
+```
+
+> 注意: このスクリプトは `sudo bash` ではなく**通常ユーザーで実行**してください。
+> `sudo` で実行すると `/root` 以下に設定が書き込まれてしまいます。
+
+### インストール後にできること
+
+- 入力エンジンが **Mozc（日本語）** と **英語(US)** の 2 つだけになり、`半角/全角` キーまたは `Ctrl+Space` で切り替えられます。
+- Mozc 起動時の入力モードが「ひらがな」になります。
+- ログアウト → 再ログイン後にスクリプトをもう一度実行すると、gsettings によるエンジン/キー設定が反映されます。
+
+### アンインストール方法
+
+#### 方法1: スクリプトのアンインストールモード（推奨）
+
+```bash
+bash /tmp/antix-ibus-mozc.sh -u
+```
+
+#### 方法2: 手動
+
+```bash
+# 1. gsettings の設定をリセット
+gsettings reset org.freedesktop.ibus.general preload-engines
+gsettings reset org.freedesktop.ibus.general engines-order
+gsettings reset org.freedesktop.ibus.general.hotkey trigger
+
+# 2. desktop-session.conf から im_module="ibus" を含む追記ブロックを削除
+# 3. startup から ibus-daemon -drx の行を削除
+# 4. Mozc のユーザー設定を削除
+rm -rf ~/.config/mozc
+
+# 5. パッケージを削除
+sudo apt remove --purge -y ibus-mozc fonts-noto-cjk
+#    ibus 本体は他のアプリでも使う可能性があるため削除しません。
+#    削除したい場合のみ: sudo apt remove --purge -y ibus ibus-gtk ibus-gtk3 ibus-gtk4
+```
+
+> アンインストール後は一度ログアウト → 再ログイン（または X の再起動）してください。
 
 ---
 
