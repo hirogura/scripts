@@ -14,6 +14,7 @@
 | `antix-install-vlc.sh` | メディアプレイヤー VLC を antiX にインストール。日本語パック（vlc-l10n）もリポジトリにあれば導入 |
 | `antix-desktop-shortcut.sh` | Google Chrome / LibreOffice / Thunderbird / VLC のショートカットを antiX のデスクトップ（`~/Desktop`）に作成 |
 | `antix-install-xnviewmp.sh` | 画像ビューア XnView MP を antiX にインストール。公式サイトから deb パッケージを直接ダウンロードして導入 |
+| `antix-install-chrome.sh` | ブラウザ Google Chrome を antiX にインストール。デスクトップショートカットも自動で作成 |
 
 ---
 
@@ -436,6 +437,46 @@ sudo bash /tmp/antix-install-xnviewmp.sh -u
 ```
 
 > アンインストールすると、`sudo` で実行したユーザーの設定（`~/.config/xnviewmp`）も削除されます。
+
+---
+
+## antix-install-chrome.sh
+
+### 前提条件
+
+- antiX（runit 使用のシステム）
+- パッケージインストールのためインターネット接続が必要
+- 実行時に root 権限が必要（`sudo`）
+
+### インストール方法（GitHub から）
+
+#### 方法1: ダウンロードして実行（推奨）
+
+```bash
+curl -fsSL -o /tmp/antix-install-chrome.sh \
+  https://raw.githubusercontent.com/hirogura/scripts/main/antix-install-chrome.sh
+sudo bash /tmp/antix-install-chrome.sh
+```
+
+#### 方法2: ワンライナー（パイプ実行）
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/hirogura/scripts/main/antix-install-chrome.sh \
+  | sudo bash
+```
+
+### インストール後にできること
+
+- デスクトップメニュー、デスクトップのショートカット、または `google-chrome-stable` コマンドから起動できます。
+- `sudo` で実行したユーザーのデスクトップ（`~/Desktop`）に `google-chrome.desktop` のショートカットが自動で作成されます。
+
+### アンインストール方法
+
+```bash
+sudo bash /tmp/antix-install-chrome.sh -u
+```
+
+> アンインストールすると、`sudo` で実行したユーザーのブラウザデータ（`~/.config/google-chrome`）も削除されます。残したい場合は事前にバックアップしてください。
 
 ---
 
