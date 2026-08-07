@@ -12,6 +12,7 @@
 | `antix-ibus-mozc.sh` | 日本語入力（ibus + Mozc）を antiX（desktop-session）にセットアップ。切り替えキーに半角/全角を追加し、起動時のデフォルトをひらがなに設定 |
 | `antix-install-thunderbird.sh` | メーラー Thunderbird を antiX にインストール。日本語パック（thunderbird-l10n-ja）もリポジトリにあれば導入 |
 | `antix-install-vlc.sh` | メディアプレイヤー VLC を antiX にインストール。日本語パック（vlc-l10n）もリポジトリにあれば導入 |
+| `antix-desktop-shortcut.sh` | Google Chrome / LibreOffice / Thunderbird / VLC のショートカットを antiX のデスクトップ（`~/Desktop`）に作成 |
 
 ---
 
@@ -340,6 +341,56 @@ sudo bash /tmp/antix-install-vlc.sh -u
 ```
 
 > アンインストールすると、`sudo` で実行したユーザーの設定（`~/.config/vlc`）も削除されます。
+
+---
+
+## antix-desktop-shortcut.sh
+
+### 前提条件
+
+- antiX（IceWM / Fluxbox 等のデスクトップ環境）
+- ショートカットを作成するユーザーで実行してください（`sudo` は不要）
+
+### 使用方法（GitHub から）
+
+#### 方法1: ダウンロードして実行（推奨）
+
+```bash
+curl -fsSL -o /tmp/antix-desktop-shortcut.sh \
+  https://raw.githubusercontent.com/hirogura/scripts/main/antix-desktop-shortcut.sh
+bash /tmp/antix-desktop-shortcut.sh
+```
+
+#### 方法2: ワンライナー（パイプ実行）
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/hirogura/scripts/main/antix-desktop-shortcut.sh \
+  | bash
+```
+
+> 注意: このスクリプトは `sudo` で実行せず、ショートカットを配置したいユーザーで実行してください。
+> `sudo` で実行すると `/root/Desktop` に作成されてしまいます。
+
+### 作成されるショートカット
+
+実行ユーザーの `~/Desktop` に以下が作成されます:
+
+| ショートカット | 説明 |
+|---------------|------|
+| `google-chrome.desktop` | Google Chrome |
+| `libreoffice-calc.desktop` | LibreOffice Calc |
+| `libreoffice-writer.desktop` | LibreOffice Writer |
+| `libreoffice-impress.desktop` | LibreOffice Impress |
+| `thunderbird.desktop` | Thunderbird |
+| `vlc.desktop` | VLC media player |
+
+> Thunderbird / VLC は `antix-install-thunderbird.sh` / `antix-install-vlc.sh` でインストールした場合に起動できます。
+
+### ショートカット削除方法
+
+```bash
+bash /tmp/antix-desktop-shortcut.sh -u
+```
 
 ---
 
