@@ -86,16 +86,41 @@ install() {
     # --- 後片付け ---
     rm -f "${TMP_DEB}"
 
+    # --- デスクトップショートカット作成 ---
+    create_shortcut
+
     echo
     echo "=== インストール完了 ==="
     if command -v xnview >/dev/null 2>&1; then
-        echo "デスクトップメニューまたは 'xnview' コマンドで起動できます。"
+        echo "デスクトップメニュー、デスクトップのショートカット、または 'xnview' コマンドで起動できます。"
     else
         echo "警告: インストールが正常に完了していない可能性があります。"
         echo "依存関係エラーが出た場合は、以下を試してください:"
         echo "  sudo apt --fix-broken install"
         exit 1
     fi
+}
+
+# ------------------------------------------------------------
+# デスクトップショートカット作成
+# ------------------------------------------------------------
+create_shortcut() {
+    echo "=== デスクトップショートカット作成 ==="
+    mkdir -p "$REAL_HOME/Desktop"
+
+    cat > "$REAL_HOME/Desktop/xnviewmp.desktop" << 'EOF'
+[Desktop Entry]
+Type=Application
+Name=XnView MP
+Comment=画像ビューア
+Exec=xnview %U
+Icon=/opt/XnView/xnview.png
+Terminal=false
+Categories=Graphics;
+EOF
+
+    chmod +x "$REAL_HOME/Desktop/xnviewmp.desktop"
+    echo "デスクトップに xnviewmp.desktop を作成しました。"
 }
 
 # ------------------------------------------------------------
@@ -111,13 +136,17 @@ uninstall() {
         exit 0
     fi
 
+    # --- デスクトップショートカットの削除 ---
+    echo "[1/3] デスクトップショートカットを削除しています..."
+    rm -f "$REAL_HOME/Desktop/xnviewmp.desktop"
+
     # --- XnView MP の削除 ---
-    echo "[1/2] XnView MP を削除しています..."
+    echo "[2/3] XnView MP を削除しています..."
     dpkg -r xnview
     apt-get autoremove -y
 
     # --- ユーザー設定の削除 ---
-    echo "[2/2] ユーザー設定（$REAL_USER）を削除しています..."
+    echo "[3/3] ユーザー設定（$REAL_USER）を削除しています..."
     rm -rf "$REAL_HOME/.config/xnviewmp"
     rm -rf "$REAL_HOME/.cache/xnviewmp"
 

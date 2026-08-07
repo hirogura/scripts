@@ -429,8 +429,9 @@ curl -fsSL https://raw.githubusercontent.com/hirogura/scripts/main/antix-install
 
 ### インストール後にできること
 
-- デスクトップメニューまたは `xnview` コマンドから起動できます。
+- デスクトップメニュー、デスクトップのショートカット、または `xnview` コマンドから起動できます。
 - XnView MP は Debian 公式リポジトリに存在しないため、xnview.com 公式サイトから deb パッケージを直接ダウンロードして導入します。
+- `sudo` で実行したユーザーのデスクトップ（`~/Desktop`）に `xnviewmp.desktop` のショートカットが自動で作成されます。
 
 ### アンインストール方法
 
