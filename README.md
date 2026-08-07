@@ -10,6 +10,8 @@
 | `antix-install-codeserver.sh` | Code-Server を antiX（runit 環境）にインストール。root レベル runit サービスで再起動後も自動起動。Tailscale serve で tailnet 内のみ HTTPS 公開 |
 | `install-immich.sh` | Immich（写真管理）を Docker でインストール。PostgreSQL / Redis / Machine Learning 込み。Tailscale serve で tailnet 内のみ HTTPS 公開 |
 | `antix-ibus-mozc.sh` | 日本語入力（ibus + Mozc）を antiX（desktop-session）にセットアップ。切り替えキーに半角/全角を追加し、起動時のデフォルトをひらがなに設定 |
+| `antix-install-thunderbird.sh` | メーラー Thunderbird を antiX にインストール。日本語パック（thunderbird-l10n-ja）もリポジトリにあれば導入 |
+| `antix-install-vlc.sh` | メディアプレイヤー VLC を antiX にインストール。日本語パック（vlc-l10n）もリポジトリにあれば導入 |
 
 ---
 
@@ -258,6 +260,86 @@ sudo apt remove --purge -y ibus-mozc fonts-noto-cjk
 ```
 
 > アンインストール後は一度ログアウト → 再ログイン（または X の再起動）してください。
+
+---
+
+## antix-install-thunderbird.sh
+
+### 前提条件
+
+- antiX（runit 使用のシステム）
+- パッケージインストールのためインターネット接続が必要
+- 実行時に root 権限が必要（`sudo`）
+
+### インストール方法（GitHub から）
+
+#### 方法1: ダウンロードして実行（推奨）
+
+```bash
+curl -fsSL -o /tmp/antix-install-thunderbird.sh \
+  https://raw.githubusercontent.com/hirogura/scripts/main/antix-install-thunderbird.sh
+sudo bash /tmp/antix-install-thunderbird.sh
+```
+
+#### 方法2: ワンライナー（パイプ実行）
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/hirogura/scripts/main/antix-install-thunderbird.sh \
+  | sudo bash
+```
+
+### インストール後にできること
+
+- デスクトップメニューまたは `thunderbird` コマンドから起動できます。
+- リポジトリにあれば日本語言語パック（`thunderbird-l10n-ja`）も自動インストールされます。
+
+### アンインストール方法
+
+```bash
+sudo bash /tmp/antix-install-thunderbird.sh -u
+```
+
+> アンインストールすると、`sudo` で実行したユーザーのメールデータ（`~/.thunderbird`）も削除されます。残したい場合は事前にバックアップしてください。
+
+---
+
+## antix-install-vlc.sh
+
+### 前提条件
+
+- antiX（runit 使用のシステム）
+- パッケージインストールのためインターネット接続が必要
+- 実行時に root 権限が必要（`sudo`）
+
+### インストール方法（GitHub から）
+
+#### 方法1: ダウンロードして実行（推奨）
+
+```bash
+curl -fsSL -o /tmp/antix-install-vlc.sh \
+  https://raw.githubusercontent.com/hirogura/scripts/main/antix-install-vlc.sh
+sudo bash /tmp/antix-install-vlc.sh
+```
+
+#### 方法2: ワンライナー（パイプ実行）
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/hirogura/scripts/main/antix-install-vlc.sh \
+  | sudo bash
+```
+
+### インストール後にできること
+
+- デスクトップメニューまたは `vlc` コマンドから起動できます。
+- リポジトリにあれば日本語パック（`vlc-l10n`）も自動インストールされます。
+
+### アンインストール方法
+
+```bash
+sudo bash /tmp/antix-install-vlc.sh -u
+```
+
+> アンインストールすると、`sudo` で実行したユーザーの設定（`~/.config/vlc`）も削除されます。
 
 ---
 
