@@ -175,7 +175,6 @@ sudo bash /tmp/antix-install-codeserver.sh -p pass -P 9090  # ポート変更
 - code-server は root レベルの runit サービスとして登録されるため、再起動後も自動的に起動します。
 - ログイン時に入力したパスワードでログインします（`~/.config/code-server/config.yaml` にも保存されています）。
 - 日本語 UI は自動設定済みです。
-- `sudo` で実行したユーザーのデスクトップ（`~/Desktop`）に `code-server.desktop` のショートカットが自動で作成されます。ダブルクリックで Chrome のアプリモードが開き VS Code にアクセスできます。
 
 ### アンインストール方法
 
@@ -196,9 +195,6 @@ sudo dpkg -r code-server
 rm -rf ~/.config/code-server
 rm -rf ~/.local/share/code-server
 rm -rf ~/.cache/code-server
-
-# 5. デスクトップショートカットを削除
-rm -f ~/Desktop/code-server.desktop
 ```
 
 > `~/.config/code-server/config.yaml` にはパスワードが含まれているため、削除前に安全な場所へ保管するか、ログアウト等の準備をしてください。
