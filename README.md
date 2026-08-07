@@ -293,8 +293,9 @@ curl -fsSL https://raw.githubusercontent.com/hirogura/scripts/main/antix-install
 
 ### インストール後にできること
 
-- デスクトップメニューまたは `thunderbird` コマンドから起動できます。
+- デスクトップメニュー、デスクトップのショートカット、または `thunderbird` コマンドから起動できます。
 - リポジトリにあれば日本語言語パック（`thunderbird-l10n-ja`）も自動インストールされます。
+- `sudo` で実行したユーザーのデスクトップ（`~/Desktop`）に `thunderbird.desktop` のショートカットが自動で作成されます。
 
 ### アンインストール方法
 
