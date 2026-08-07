@@ -385,8 +385,11 @@ curl -fsSL https://raw.githubusercontent.com/hirogura/scripts/main/antix-desktop
 | `thunderbird.desktop` | Thunderbird |
 | `vlc.desktop` | VLC media player |
 | `xnviewmp.desktop` | XnView MP |
+| `shutdown.desktop` | シャットダウン |
+| `reboot.desktop` | 再起動 |
 
 > Thunderbird / VLC は `antix-install-thunderbird.sh` / `antix-install-vlc.sh`、XnView MP は `antix-install-xnviewmp.sh` でインストールした場合に起動できます。
+> シャットダウン / 再起動は antiX 標準の `desktop-session-exit` を使用します。antiX には `/etc/sudoers.d/antixers` で `poweroff` / `reboot` の NOPASSWD ルールが最初から設定されているため、パスワード入力なしで実行できます。
 
 ### ショートカット削除方法
 

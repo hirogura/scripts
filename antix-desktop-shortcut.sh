@@ -4,7 +4,8 @@
 #  antiX（IceWM / Fluxbox 等）向け
 #
 #  Google Chrome / LibreOffice（Calc, Writer, Impress）/
-#  Thunderbird / VLC / XnView MP のショートカットをデスクトップに作成します。
+#  Thunderbird / VLC / XnView MP のショートカットと、
+#  シャットダウン / 再起動のショートカットをデスクトップに作成します。
 #
 #  インストール方法（GitHub から）:
 #    1) curl -fsSL -o /tmp/antix-desktop-shortcut.sh \
@@ -133,6 +134,28 @@ Terminal=false
 Categories=Graphics;
 EOF
 
+    cat > ~/Desktop/shutdown.desktop << 'EOF'
+[Desktop Entry]
+Type=Application
+Name=シャットダウン
+Comment=システムのシャットダウン
+Exec=desktop-session-exit --shutdown
+Icon=system-shutdown
+Terminal=false
+Categories=System;
+EOF
+
+    cat > ~/Desktop/reboot.desktop << 'EOF'
+[Desktop Entry]
+Type=Application
+Name=再起動
+Comment=システムの再起動
+Exec=desktop-session-exit --reboot
+Icon=system-reboot
+Terminal=false
+Categories=System;
+EOF
+
     chmod +x \
         ~/Desktop/google-chrome.desktop \
         ~/Desktop/libreoffice-calc.desktop \
@@ -140,12 +163,15 @@ EOF
         ~/Desktop/libreoffice-impress.desktop \
         ~/Desktop/thunderbird.desktop \
         ~/Desktop/vlc.desktop \
-        ~/Desktop/xnviewmp.desktop
+        ~/Desktop/xnviewmp.desktop \
+        ~/Desktop/shutdown.desktop \
+        ~/Desktop/reboot.desktop
 
     echo "=== 完了 ==="
     echo "デスクトップにショートカットを作成しました:"
     echo "  google-chrome.desktop / libreoffice-calc.desktop / libreoffice-writer.desktop"
     echo "  libreoffice-impress.desktop / thunderbird.desktop / vlc.desktop / xnviewmp.desktop"
+    echo "  shutdown.desktop / reboot.desktop"
 }
 
 # ------------------------------------------------------------
@@ -160,6 +186,8 @@ uninstall() {
     rm -f ~/Desktop/thunderbird.desktop
     rm -f ~/Desktop/vlc.desktop
     rm -f ~/Desktop/xnviewmp.desktop
+    rm -f ~/Desktop/shutdown.desktop
+    rm -f ~/Desktop/reboot.desktop
     echo "=== 完了 ==="
     echo "デスクトップショートカットを削除しました。"
 }
