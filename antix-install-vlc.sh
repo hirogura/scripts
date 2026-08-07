@@ -85,15 +85,40 @@ install() {
         echo "言語パック（vlc-l10n）はリポジトリに見つかりませんでした。スキップします。"
     fi
 
+    # --- デスクトップショートカット作成 ---
+    create_shortcut
+
     echo
     echo "=== インストール完了 ==="
     if command -v vlc >/dev/null 2>&1; then
         vlc --version | head -n 1
-        echo "デスクトップメニューまたは 'vlc' コマンドで起動できます。"
+        echo "デスクトップメニュー、デスクトップのショートカット、または 'vlc' コマンドで起動できます。"
     else
         echo "警告: インストールが正常に完了していない可能性があります。ログを確認してください。"
         exit 1
     fi
+}
+
+# ------------------------------------------------------------
+# デスクトップショートカット作成
+# ------------------------------------------------------------
+create_shortcut() {
+    echo "=== デスクトップショートカット作成 ==="
+    mkdir -p "$REAL_HOME/Desktop"
+
+    cat > "$REAL_HOME/Desktop/vlc.desktop" << 'EOF'
+[Desktop Entry]
+Type=Application
+Name=VLC media player
+Comment=メディアプレイヤー
+Exec=vlc %U
+Icon=vlc
+Terminal=false
+Categories=AudioVideo;Player;
+EOF
+
+    chmod +x "$REAL_HOME/Desktop/vlc.desktop"
+    echo "デスクトップに vlc.desktop を作成しました。"
 }
 
 # ------------------------------------------------------------
@@ -109,13 +134,17 @@ uninstall() {
         exit 0
     fi
 
+    # --- デスクトップショートカットの削除 ---
+    echo "[1/3] デスクトップショートカットを削除しています..."
+    rm -f "$REAL_HOME/Desktop/vlc.desktop"
+
     # --- VLC の削除 ---
-    echo "[1/2] VLC を削除しています..."
+    echo "[2/3] VLC を削除しています..."
     apt-get purge -y vlc vlc-l10n
     apt-get autoremove -y
 
     # --- ユーザー設定の削除 ---
-    echo "[2/2] ユーザー設定（$REAL_USER）を削除しています..."
+    echo "[3/3] ユーザー設定（$REAL_USER）を削除しています..."
     rm -rf "$REAL_HOME/.config/vlc"
     rm -rf "$REAL_HOME/.cache/vlc"
 

@@ -334,8 +334,9 @@ curl -fsSL https://raw.githubusercontent.com/hirogura/scripts/main/antix-install
 
 ### インストール後にできること
 
-- デスクトップメニューまたは `vlc` コマンドから起動できます。
+- デスクトップメニュー、デスクトップのショートカット、または `vlc` コマンドから起動できます。
 - リポジトリにあれば日本語パック（`vlc-l10n`）も自動インストールされます。
+- `sudo` で実行したユーザーのデスクトップ（`~/Desktop`）に `vlc.desktop` のショートカットが自動で作成されます。
 
 ### アンインストール方法
 
