@@ -12,7 +12,7 @@
 | `antix-ibus-mozc.sh` | 日本語入力（ibus + Mozc）を antiX（desktop-session）にセットアップ。切り替えキーに半角/全角を追加し、起動時のデフォルトをひらがなに設定 |
 | `antix-install-thunderbird.sh` | メーラー Thunderbird を antiX にインストール。日本語パック（thunderbird-l10n-ja）もリポジトリにあれば導入 |
 | `antix-install-vlc.sh` | メディアプレイヤー VLC を antiX にインストール。日本語パック（vlc-l10n）もリポジトリにあれば導入 |
-| `antix-desktop-shortcut.sh` | Google Chrome / LibreOffice / Thunderbird / VLC のショートカットを antiX のデスクトップ（`~/Desktop`）に作成 |
+| `antix-desktop-shortcut.sh` | LibreOffice（Calc / Writer / Impress）とシャットダウン / 再起動のショートカットを antiX のデスクトップ（`~/Desktop`）に作成 |
 | `antix-install-xnviewmp.sh` | 画像ビューア XnView MP を antiX にインストール。公式サイトから deb パッケージを直接ダウンロードして導入 |
 | `antix-install-chrome.sh` | ブラウザ Google Chrome を antiX にインストール。デスクトップショートカットも自動で作成 |
 | `antix-install-vscode.sh` | エディター Visual Studio Code を antiX にインストール。日本語言語パック適用とデスクトップショートカット作成を自動で実行 |
@@ -382,17 +382,13 @@ curl -fsSL https://raw.githubusercontent.com/hirogura/scripts/main/antix-desktop
 
 | ショートカット | 説明 |
 |---------------|------|
-| `google-chrome.desktop` | Google Chrome |
 | `libreoffice-calc.desktop` | LibreOffice Calc |
 | `libreoffice-writer.desktop` | LibreOffice Writer |
 | `libreoffice-impress.desktop` | LibreOffice Impress |
-| `thunderbird.desktop` | Thunderbird |
-| `vlc.desktop` | VLC media player |
-| `xnviewmp.desktop` | XnView MP |
 | `shutdown.desktop` | シャットダウン |
 | `reboot.desktop` | 再起動 |
 
-> Thunderbird / VLC は `antix-install-thunderbird.sh` / `antix-install-vlc.sh`、XnView MP は `antix-install-xnviewmp.sh` でインストールした場合に起動できます。
+> Google Chrome / Thunderbird / VLC / XnView MP / VS Code 等のアプリのショートカットは、各インストールスクリプト（`antix-install-chrome.sh` 等）がインストール時に自動で作成します。
 > シャットダウン / 再起動は antiX 標準の `desktop-session-exit` を使用します。antiX には `/etc/sudoers.d/antixers` で `poweroff` / `reboot` の NOPASSWD ルールが最初から設定されているため、パスワード入力なしで実行できます。
 
 ### ショートカット削除方法

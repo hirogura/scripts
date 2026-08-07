@@ -3,9 +3,10 @@
 #  デスクトップショートカット作成スクリプト
 #  antiX（IceWM / Fluxbox 等）向け
 #
-#  Google Chrome / LibreOffice（Calc, Writer, Impress）/
-#  Thunderbird / VLC / XnView MP / AzPainter のショートカットと、
+#  LibreOffice（Calc, Writer, Impress）と、
 #  シャットダウン / 再起動のショートカットをデスクトップに作成します。
+#  （各アプリのショートカットは各インストールスクリプトが作成するため、
+#   ここでは LibreOffice とシステム系のみを扱います）
 #
 #  インストール方法（GitHub から）:
 #    1) curl -fsSL -o /tmp/antix-desktop-shortcut.sh \
@@ -57,17 +58,6 @@ create() {
     echo "=== デスクトップショートカット作成開始 ==="
     mkdir -p ~/Desktop
 
-    cat > ~/Desktop/google-chrome.desktop << 'EOF'
-[Desktop Entry]
-Type=Application
-Name=Google Chrome
-Comment=ウェブブラウザ
-Exec=/usr/bin/google-chrome-stable %U
-Icon=google-chrome
-Terminal=false
-Categories=Network;WebBrowser;
-EOF
-
     cat > ~/Desktop/libreoffice-calc.desktop << 'EOF'
 [Desktop Entry]
 Type=Application
@@ -101,50 +91,6 @@ Terminal=false
 Categories=Office;Presentation;
 EOF
 
-    cat > ~/Desktop/thunderbird.desktop << 'EOF'
-[Desktop Entry]
-Type=Application
-Name=Thunderbird
-Comment=メーラー
-Exec=thunderbird %U
-Icon=thunderbird
-Terminal=false
-Categories=Network;Email;
-EOF
-
-    cat > ~/Desktop/vlc.desktop << 'EOF'
-[Desktop Entry]
-Type=Application
-Name=VLC media player
-Comment=メディアプレイヤー
-Exec=vlc %U
-Icon=vlc
-Terminal=false
-Categories=AudioVideo;Player;
-EOF
-
-    cat > ~/Desktop/xnviewmp.desktop << 'EOF'
-[Desktop Entry]
-Type=Application
-Name=XnView MP
-Comment=画像ビューア
-Exec=xnview %U
-Icon=/opt/XnView/xnview.png
-Terminal=false
-Categories=Graphics;
-EOF
-
-    cat > ~/Desktop/azpainter.desktop << 'EOF'
-[Desktop Entry]
-Type=Application
-Name=AzPainter
-Comment=ペイントソフト
-Exec=azpainter %f
-Icon=azpainter
-Terminal=false
-Categories=Graphics;
-EOF
-
     cat > ~/Desktop/shutdown.desktop << 'EOF'
 [Desktop Entry]
 Type=Application
@@ -168,22 +114,16 @@ Categories=System;
 EOF
 
     chmod +x \
-        ~/Desktop/google-chrome.desktop \
         ~/Desktop/libreoffice-calc.desktop \
         ~/Desktop/libreoffice-writer.desktop \
         ~/Desktop/libreoffice-impress.desktop \
-        ~/Desktop/thunderbird.desktop \
-        ~/Desktop/vlc.desktop \
-        ~/Desktop/xnviewmp.desktop \
-        ~/Desktop/azpainter.desktop \
         ~/Desktop/shutdown.desktop \
         ~/Desktop/reboot.desktop
 
     echo "=== 完了 ==="
     echo "デスクトップにショートカットを作成しました:"
-    echo "  google-chrome.desktop / libreoffice-calc.desktop / libreoffice-writer.desktop"
-    echo "  libreoffice-impress.desktop / thunderbird.desktop / vlc.desktop / xnviewmp.desktop"
-    echo "  azpainter.desktop / shutdown.desktop / reboot.desktop"
+    echo "  libreoffice-calc.desktop / libreoffice-writer.desktop"
+    echo "  libreoffice-impress.desktop / shutdown.desktop / reboot.desktop"
 }
 
 # ------------------------------------------------------------
@@ -191,14 +131,9 @@ EOF
 # ------------------------------------------------------------
 uninstall() {
     echo "=== デスクトップショートカット削除開始 ==="
-    rm -f ~/Desktop/google-chrome.desktop
     rm -f ~/Desktop/libreoffice-calc.desktop
     rm -f ~/Desktop/libreoffice-writer.desktop
     rm -f ~/Desktop/libreoffice-impress.desktop
-    rm -f ~/Desktop/thunderbird.desktop
-    rm -f ~/Desktop/vlc.desktop
-    rm -f ~/Desktop/xnviewmp.desktop
-    rm -f ~/Desktop/azpainter.desktop
     rm -f ~/Desktop/shutdown.desktop
     rm -f ~/Desktop/reboot.desktop
     echo "=== 完了 ==="
