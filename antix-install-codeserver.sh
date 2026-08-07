@@ -373,15 +373,8 @@ EOF
 # ============================================================
 # 8. Tailscale serve 設定
 # ============================================================
-setup_tailscale_serve() {
-  info "Tailscale serve に code-server (port ${CODE_SERVER_PORT}) を追加中..."
-
-  # 既存の serve 設定があれば削除してから再設定
-  tailscale serve --https="${CODE_SERVER_PORT}" off 2>/dev/null || true
-  tailscale serve --bg --https=${CODE_SERVER_PORT} "http://127.0.0.1:${CODE_SERVER_PORT}"
-  success "Tailscale serve 設定完了"
-
-  TS_HOSTNAME=$(tailscale status --json 2>/dev/null | python3 -c "
+get_ts_hostname() {
+  tailscale status --json 2>/dev/null | python3 -c "
 import sys, json
 try:
     d = json.load(sys.stdin)
@@ -390,7 +383,18 @@ try:
     print(dns if dns else s.get('HostName', 'unknown'))
 except:
     print('unknown')
-" 2>/dev/null || echo "unknown")
+" 2>/dev/null || echo "unknown"
+}
+
+setup_tailscale_serve() {
+  info "Tailscale serve に code-server (port ${CODE_SERVER_PORT}) を追加中..."
+
+  # 既存の serve 設定があれば削除してから再設定
+  tailscale serve --https="${CODE_SERVER_PORT}" off 2>/dev/null || true
+  tailscale serve --bg --https=${CODE_SERVER_PORT} "http://127.0.0.1:${CODE_SERVER_PORT}"
+  success "Tailscale serve 設定完了"
+
+  TS_HOSTNAME=$(get_ts_hostname)
 
   echo ""
   echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
@@ -420,6 +424,30 @@ except:
 }
 
 # ============================================================
+# 9. デスクトップショートカット作成
+# ============================================================
+create_shortcut() {
+  info "デスクトップショートカットを作成中..."
+  mkdir -p "$REAL_HOME/Desktop"
+
+  TS_HOSTNAME=$(get_ts_hostname)
+
+  cat > "$REAL_HOME/Desktop/code-server.desktop" <<EOF
+[Desktop Entry]
+Type=Application
+Name=Code-Server
+Comment=VS Code（ブラウザ版）
+Exec=google-chrome-stable --app=https://${TS_HOSTNAME}:${CODE_SERVER_PORT}
+Icon=vscode
+Terminal=false
+Categories=Development;IDE;
+EOF
+
+  chmod +x "$REAL_HOME/Desktop/code-server.desktop"
+  success "デスクトップに code-server.desktop を作成しました（https://${TS_HOSTNAME}:${CODE_SERVER_PORT}）"
+}
+
+# ============================================================
 # メイン
 # ============================================================
 main() {
@@ -432,6 +460,7 @@ main() {
   setup_config             # ⑥ 設定ファイル
   setup_runit              # ⑦ runit 登録（root レベル）
   setup_tailscale_serve    # ⑧ Tailscale serve 設定
+  create_shortcut          # ⑨ デスクトップショートカット作成
 }
 
 main "$@"
