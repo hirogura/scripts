@@ -4,7 +4,7 @@
 #  antiX（IceWM / Fluxbox 等）向け
 #
 #  Google Chrome / LibreOffice（Calc, Writer, Impress）/
-#  Thunderbird / VLC / XnView MP のショートカットと、
+#  Thunderbird / VLC / XnView MP / AzPainter のショートカットと、
 #  シャットダウン / 再起動のショートカットをデスクトップに作成します。
 #
 #  インストール方法（GitHub から）:
@@ -134,6 +134,17 @@ Terminal=false
 Categories=Graphics;
 EOF
 
+    cat > ~/Desktop/azpainter.desktop << 'EOF'
+[Desktop Entry]
+Type=Application
+Name=AzPainter
+Comment=ペイントソフト
+Exec=azpainter %f
+Icon=azpainter
+Terminal=false
+Categories=Graphics;
+EOF
+
     cat > ~/Desktop/shutdown.desktop << 'EOF'
 [Desktop Entry]
 Type=Application
@@ -164,6 +175,7 @@ EOF
         ~/Desktop/thunderbird.desktop \
         ~/Desktop/vlc.desktop \
         ~/Desktop/xnviewmp.desktop \
+        ~/Desktop/azpainter.desktop \
         ~/Desktop/shutdown.desktop \
         ~/Desktop/reboot.desktop
 
@@ -171,7 +183,7 @@ EOF
     echo "デスクトップにショートカットを作成しました:"
     echo "  google-chrome.desktop / libreoffice-calc.desktop / libreoffice-writer.desktop"
     echo "  libreoffice-impress.desktop / thunderbird.desktop / vlc.desktop / xnviewmp.desktop"
-    echo "  shutdown.desktop / reboot.desktop"
+    echo "  azpainter.desktop / shutdown.desktop / reboot.desktop"
 }
 
 # ------------------------------------------------------------
@@ -186,6 +198,7 @@ uninstall() {
     rm -f ~/Desktop/thunderbird.desktop
     rm -f ~/Desktop/vlc.desktop
     rm -f ~/Desktop/xnviewmp.desktop
+    rm -f ~/Desktop/azpainter.desktop
     rm -f ~/Desktop/shutdown.desktop
     rm -f ~/Desktop/reboot.desktop
     echo "=== 完了 ==="
