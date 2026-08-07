@@ -4,7 +4,7 @@
 #  antiX（IceWM / Fluxbox 等）向け
 #
 #  Google Chrome / LibreOffice（Calc, Writer, Impress）/
-#  Thunderbird / VLC のショートカットをデスクトップに作成します。
+#  Thunderbird / VLC / XnView MP のショートカットをデスクトップに作成します。
 #
 #  インストール方法（GitHub から）:
 #    1) curl -fsSL -o /tmp/antix-desktop-shortcut.sh \
@@ -122,18 +122,30 @@ Terminal=false
 Categories=AudioVideo;Player;
 EOF
 
+    cat > ~/Desktop/xnviewmp.desktop << 'EOF'
+[Desktop Entry]
+Type=Application
+Name=XnView MP
+Comment=画像ビューア
+Exec=xnview %U
+Icon=/opt/XnView/xnview.png
+Terminal=false
+Categories=Graphics;
+EOF
+
     chmod +x \
         ~/Desktop/google-chrome.desktop \
         ~/Desktop/libreoffice-calc.desktop \
         ~/Desktop/libreoffice-writer.desktop \
         ~/Desktop/libreoffice-impress.desktop \
         ~/Desktop/thunderbird.desktop \
-        ~/Desktop/vlc.desktop
+        ~/Desktop/vlc.desktop \
+        ~/Desktop/xnviewmp.desktop
 
     echo "=== 完了 ==="
     echo "デスクトップにショートカットを作成しました:"
     echo "  google-chrome.desktop / libreoffice-calc.desktop / libreoffice-writer.desktop"
-    echo "  libreoffice-impress.desktop / thunderbird.desktop / vlc.desktop"
+    echo "  libreoffice-impress.desktop / thunderbird.desktop / vlc.desktop / xnviewmp.desktop"
 }
 
 # ------------------------------------------------------------
@@ -147,6 +159,7 @@ uninstall() {
     rm -f ~/Desktop/libreoffice-impress.desktop
     rm -f ~/Desktop/thunderbird.desktop
     rm -f ~/Desktop/vlc.desktop
+    rm -f ~/Desktop/xnviewmp.desktop
     echo "=== 完了 ==="
     echo "デスクトップショートカットを削除しました。"
 }

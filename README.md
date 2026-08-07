@@ -384,8 +384,9 @@ curl -fsSL https://raw.githubusercontent.com/hirogura/scripts/main/antix-desktop
 | `libreoffice-impress.desktop` | LibreOffice Impress |
 | `thunderbird.desktop` | Thunderbird |
 | `vlc.desktop` | VLC media player |
+| `xnviewmp.desktop` | XnView MP |
 
-> Thunderbird / VLC は `antix-install-thunderbird.sh` / `antix-install-vlc.sh` でインストールした場合に起動できます。
+> Thunderbird / VLC は `antix-install-thunderbird.sh` / `antix-install-vlc.sh`、XnView MP は `antix-install-xnviewmp.sh` でインストールした場合に起動できます。
 
 ### ショートカット削除方法
 
