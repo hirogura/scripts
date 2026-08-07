@@ -122,7 +122,13 @@ Terminal=false
 Categories=AudioVideo;Player;
 EOF
 
-    chmod +x ~/Desktop/*.desktop
+    chmod +x \
+        ~/Desktop/google-chrome.desktop \
+        ~/Desktop/libreoffice-calc.desktop \
+        ~/Desktop/libreoffice-writer.desktop \
+        ~/Desktop/libreoffice-impress.desktop \
+        ~/Desktop/thunderbird.desktop \
+        ~/Desktop/vlc.desktop
 
     echo "=== 完了 ==="
     echo "デスクトップにショートカットを作成しました:"
