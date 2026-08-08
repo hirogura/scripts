@@ -136,7 +136,98 @@ install_japanese_language_pack() {
   sudo -u "$REAL_USER" code-server --install-extension MS-CEINTL.vscode-language-pack-ja \
     || error "Japanese Language Pack のインストールに失敗しました"
 
+  register_languagepacks_json
+
   success "Japanese Language Pack インストール完了"
+}
+
+# ============================================================
+# ⑤-2 languagepacks.json への登録
+#     code-server --install-extension は言語パックを展開するだけで
+#     languagepacks.json に反映されず、表示言語一覧に日本語が出ない。
+#     そのため ja エントリを生成/マージする（ハッシュ形式は実機検証済み）。
+# ============================================================
+register_languagepacks_json() {
+  info "languagepacks.json に日本語を登録中..."
+  local USER_DATA_DIR="$REAL_HOME/.local/share/code-server"
+  local EXT_DIR="$USER_DATA_DIR/extensions"
+  local LP_JSON="$USER_DATA_DIR/languagepacks.json"
+  local PACK_DIR
+  PACK_DIR=$(ls -d "$EXT_DIR"/ms-ceintl.vscode-language-pack-ja-* 2>/dev/null | head -n1)
+
+  if [ -z "$PACK_DIR" ]; then
+    warn "言語パックのディレクトリが見つかりません（languagepacks.json への登録をスキップ）"
+    return 0
+  fi
+
+  if ! command -v python3 >/dev/null 2>&1; then
+    warn "python3 が見つからないため languagepacks.json への登録をスキップ"
+    return 0
+  fi
+
+  if sudo -u "$REAL_USER" python3 - "$LP_JSON" "$PACK_DIR" "$EXT_DIR" <<'PYEOF'
+import json, os, sys, hashlib
+
+lp_json, pack_dir, ext_dir = sys.argv[1], sys.argv[2], sys.argv[3]
+
+manifest = json.load(open(os.path.join(pack_dir, "package.json")))
+ext_id = manifest.get("publisher", "") + "." + manifest.get("name", "")
+version = manifest.get("version", "")
+localizations = (manifest.get("contributes") or {}).get("localizations") or []
+
+uuid = None
+fs_path = pack_dir
+try:
+    for meta in json.load(open(os.path.join(ext_dir, "extensions.json"))):
+        if (meta.get("identifier") or {}).get("id", "").lower() == ext_id.lower():
+            uuid = (meta.get("metadata") or {}).get("id")
+            fs_path = (meta.get("location") or {}).get("fsPath") or fs_path
+            break
+except Exception:
+    pass
+
+language_packs = {}
+try:
+    language_packs = json.load(open(lp_json))
+except Exception:
+    pass
+
+for loc in localizations:
+    if not isinstance(loc.get("languageId"), str) or not isinstance(loc.get("translations"), list) or not loc["translations"]:
+        continue
+    if any(not isinstance(t.get("id"), str) or not isinstance(t.get("path"), str) for t in loc["translations"]):
+        continue
+    lang = loc["languageId"]
+    entry = language_packs.get(lang)
+    if not entry:
+        entry = {"hash": "", "extensions": [], "translations": {}, "label": loc.get("localizedLanguageName") or loc.get("languageName")}
+        language_packs[lang] = entry
+    existing = next((e for e in entry["extensions"]
+                     if (e["extensionIdentifier"].get("uuid") and uuid and e["extensionIdentifier"]["uuid"] == uuid)
+                     or (not (e["extensionIdentifier"].get("uuid") and uuid)
+                         and e["extensionIdentifier"]["id"].lower() == ext_id.lower())), None)
+    if existing:
+        existing["version"] = version
+    else:
+        entry["extensions"].append({"extensionIdentifier": {"id": ext_id, "uuid": uuid}, "version": version})
+    for t in loc["translations"]:
+        entry["translations"][t["id"]] = os.path.normpath(os.path.join(fs_path, t["path"]))
+
+for entry in language_packs.values():
+    h = hashlib.md5()
+    for e in entry["extensions"]:
+        h.update(((e["extensionIdentifier"].get("uuid") or e["extensionIdentifier"]["id"]) + e["version"]).encode())
+    entry["hash"] = h.hexdigest()
+
+with open(lp_json, "w", encoding="utf-8") as f:
+    json.dump(language_packs, f, ensure_ascii=False)
+PYEOF
+  then
+    chown -R "$REAL_USER:$REAL_USER" "$USER_DATA_DIR"
+    success "languagepacks.json に日本語を登録しました"
+  else
+    warn "languagepacks.json への登録に失敗しました"
+  fi
 }
 
 # ============================================================
@@ -161,7 +252,8 @@ EOF
   mkdir -p "$VSCODE_USER_DIR"
 
   # argv.json: ロケール設定（日本語）
-  cat > "$VSCODE_USER_DIR/../argv.json" <<'EOF'
+  # 注意: code-server はロケールを "$REAL_HOME/.local/share/code-server/User/argv.json" から読む
+  cat > "$VSCODE_USER_DIR/argv.json" <<'EOF'
 {
   "locale": "ja"
 }
