@@ -97,7 +97,11 @@ EOF
     ln -sf /etc/sv/tailscaled /etc/service/tailscaled
 
     # --- 起動待機 & 状態確認 ---
-    sleep 2
+    echo "tailscaled の起動を待機しています..."
+    for i in $(seq 1 30); do
+        [ -S /run/tailscale/tailscaled.sock ] && break
+        sleep 1
+    done
     sv status tailscaled
 
     # --- 認証 ---
