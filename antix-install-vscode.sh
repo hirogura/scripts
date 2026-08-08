@@ -115,10 +115,16 @@ create_shortcut() {
     echo "=== デスクトップショートカット作成 ==="
     mkdir -p "$REAL_HOME/Desktop"
 
-    # 公式の desktop ファイルをコピー（アイコン表示がツールバーマネージャと同じになる）
-    cp /usr/share/applications/code.desktop "$REAL_HOME/Desktop/code.desktop"
-    # 表示名を VSCode に変更
-    sed -i 's/^Name=.*/Name=VSCode/' "$REAL_HOME/Desktop/code.desktop"
+    cat > "$REAL_HOME/Desktop/code.desktop" << 'EOF'
+[Desktop Entry]
+Type=Application
+Name=VSCode
+Comment=エディター
+Exec=/usr/share/code/code %F
+Icon=/usr/share/pixmaps/vscode.png
+Terminal=false
+Categories=Development;IDE;
+EOF
 
     chmod +x "$REAL_HOME/Desktop/code.desktop"
     echo "デスクトップに code.desktop を作成しました。"
