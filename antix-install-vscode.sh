@@ -121,7 +121,7 @@ Type=Application
 Name=Visual Studio Code
 Comment=エディター
 Exec=/usr/bin/code %F
-Icon=code
+Icon=/usr/share/pixmaps/code.png
 Terminal=false
 Categories=Development;IDE;
 EOF
