@@ -17,6 +17,7 @@
 | `antix-install-chrome.sh` | ブラウザ Google Chrome を antiX にインストール。デスクトップショートカットも自動で作成 |
 | `antix-install-vscode.sh` | エディター Visual Studio Code を antiX にインストール。日本語言語パック適用とデスクトップショートカット作成を自動で実行 |
 | `antix-install-tailscale` | VPN サービス Tailscale を antiX にインストール。runit サービスとして登録し再起動後も自動起動 |
+| `antix-mouse.sh` | デスクトップアイコンのクリック動作を「シングルクリック=選択 / ダブルクリック=実行」に変更（ZzzFM / ROX-Filer / Nautilus / Caja / Nemo / Thunar / Dolphin） |
 
 ---
 
@@ -562,6 +563,50 @@ sudo bash /tmp/antix-install-tailscale -u
 ```
 
 > アンインストールすると tailnet から退出し、状態データ（`/var/lib/tailscale`）も削除されます。再インストール時は改めて認証が必要です。必要に応じて Tailscale 管理コンソール（https://login.tailscale.com/admin）からこのマシンを削除してください。
+
+---
+
+## antix-mouse.sh
+
+### 前提条件
+
+- antiX（IceWM / Fluxbox 等のデスクトップ環境）
+- 設定は実行ユーザーのホームディレクトリに書き込むため、**通常ユーザーで実行**してください（`sudo` は不要）
+
+### インストール方法（GitHub から）
+
+#### 方法1: ダウンロードして実行（推奨）
+
+```bash
+curl -fsSL -o /tmp/antix-mouse.sh \
+  https://raw.githubusercontent.com/hirogura/scripts/main/antix-mouse.sh
+bash /tmp/antix-mouse.sh
+```
+
+#### 方法2: ワンライナー（パイプ実行）
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/hirogura/scripts/main/antix-mouse.sh \
+  | bash
+```
+
+> 注意: このスクリプトは `sudo` で実行せず、設定を変更したいユーザーで実行してください。
+> `sudo` で実行すると `/root` の設定が変更されてしまいます。
+
+### インストール後にできること
+
+- デスクトップアイコンが「シングルクリック=選択 / ダブルクリック=実行」になります。
+- 対応環境に自動で適用されます（ZzzFM / ROX-Filer / Nautilus / Caja / Nemo / Thunar / Dolphin）。
+- ドライラン（`-n`）で変更内容の確認だけができます。
+- 対象ユーザー名を指定すると、そのユーザーの設定を変更できます（要 `root`）。
+
+### アンインストール方法
+
+```bash
+bash /tmp/antix-mouse.sh -u
+```
+
+> アンインストールするとデスクトップアイコンのクリック動作が「シングルクリック=実行」のデフォルトに戻ります。
 
 ---
 
