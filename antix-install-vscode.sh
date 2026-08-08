@@ -94,6 +94,16 @@ install() {
     echo "日本語言語パックをインストールしています..."
     sudo -u "$REAL_USER" code --install-extension MS-CEINTL.vscode-language-pack-ja || true
 
+    # --- 表示言語を日本語に固定（~/.vscode/argv.json） ---
+    echo "表示言語を日本語に設定しています..."
+    mkdir -p "$REAL_HOME/.vscode"
+    cat > "$REAL_HOME/.vscode/argv.json" <<'EOF'
+{
+  "locale": "ja"
+}
+EOF
+    chown -R "$REAL_USER:$REAL_USER" "$REAL_HOME/.vscode"
+
     # --- デスクトップショートカット作成 ---
     create_shortcut
 
