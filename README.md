@@ -17,7 +17,7 @@
 | `antix-install-chrome.sh` | ブラウザ Google Chrome を antiX にインストール。デスクトップショートカットも自動で作成 |
 | `antix-install-vscode.sh` | エディター Visual Studio Code を antiX にインストール。日本語言語パック適用とデスクトップショートカット作成を自動で実行 |
 | `antix-install-tailscale` | VPN サービス Tailscale を antiX にインストール。runit サービスとして登録し再起動後も自動起動 |
-| `antix-install-krita.sh` | ペイントアプリ Krita を antiX にインストール。デスクトップショートカットも自動で作成 |
+| `antix-install-krita.sh` | ペイントアプリ Krita を antiX にインストール。日本語パック（krita-l10n）もリポジトリにあれば導入し、デスクトップショートカットも自動で作成 |
 | `antix-mouse.sh` | デスクトップアイコンのクリック動作を「シングルクリック=選択 / ダブルクリック=実行」に変更（ZzzFM / ROX-Filer / Nautilus / Caja / Nemo / Thunar / Dolphin） |
 
 ---
@@ -595,6 +595,7 @@ curl -fsSL https://raw.githubusercontent.com/hirogura/scripts/main/antix-install
 ### インストール後にできること
 
 - デスクトップメニュー、デスクトップのショートカット、または `krita` コマンドから起動できます。
+- リポジトリにあれば日本語パック（`krita-l10n`）も自動インストールされます。
 - `sudo` で実行したユーザーのデスクトップ（`~/Desktop`）に `krita.desktop` のショートカットが自動で作成されます。
 
 ### アンインストール方法

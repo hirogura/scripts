@@ -73,11 +73,20 @@ install() {
     apt-get update
 
     # --- Krita のインストール ---
-    echo "[2/3] Krita をインストールしています..."
+    echo "[2/4] Krita をインストールしています..."
     apt-get install -y krita
 
+    # --- 日本語パック（任意・存在すれば導入） ---
+    echo "[3/4] 日本語パックを確認しています..."
+    if apt-cache show krita-l10n >/dev/null 2>&1; then
+        apt-get install -y krita-l10n
+        echo "言語パック（krita-l10n）をインストールしました。"
+    else
+        echo "言語パック（krita-l10n）はリポジトリに見つかりませんでした。スキップします。"
+    fi
+
     # --- デスクトップショートカット作成 ---
-    echo "[3/3] デスクトップショートカットを作成しています..."
+    echo "[4/4] デスクトップショートカットを作成しています..."
     create_shortcut
 
     echo
@@ -132,7 +141,7 @@ uninstall() {
 
     # --- Krita の削除 ---
     echo "[2/3] Krita を削除しています..."
-    apt-get purge -y krita
+    apt-get purge -y krita krita-l10n
     apt-get autoremove -y
 
     # --- ユーザー設定の削除 ---
