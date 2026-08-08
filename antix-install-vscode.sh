@@ -117,6 +117,8 @@ create_shortcut() {
 
     # 公式の desktop ファイルをコピー（アイコン表示がツールバーマネージャと同じになる）
     cp /usr/share/applications/code.desktop "$REAL_HOME/Desktop/code.desktop"
+    # 表示名を VSCode に変更
+    sed -i 's/^Name=.*/Name=VSCode/' "$REAL_HOME/Desktop/code.desktop"
 
     chmod +x "$REAL_HOME/Desktop/code.desktop"
     echo "デスクトップに code.desktop を作成しました。"
