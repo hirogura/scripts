@@ -106,7 +106,7 @@ EOF
 
     # --- 認証 ---
     echo "[4/4] ブラウザで認証します..."
-    tailscale up
+    sudo tailscale up
 
     echo
     echo "=== インストール完了 ==="
