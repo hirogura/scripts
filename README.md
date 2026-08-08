@@ -16,6 +16,7 @@
 | `antix-install-xnviewmp.sh` | 画像ビューア XnView MP を antiX にインストール。公式サイトから deb パッケージを直接ダウンロードして導入 |
 | `antix-install-chrome.sh` | ブラウザ Google Chrome を antiX にインストール。デスクトップショートカットも自動で作成 |
 | `antix-install-vscode.sh` | エディター Visual Studio Code を antiX にインストール。日本語言語パック適用とデスクトップショートカット作成を自動で実行 |
+| `antix-install-tailscale` | VPN サービス Tailscale を antiX にインストール。runit サービスとして登録し再起動後も自動起動 |
 
 ---
 
@@ -518,6 +519,49 @@ sudo bash /tmp/antix-install-vscode.sh -u
 ```
 
 > アンインストールすると、`sudo` で実行したユーザーの設定・拡張機能（`~/.vscode`）も削除されます。残したい場合は事前にバックアップしてください。
+
+---
+
+## antix-install-tailscale
+
+### 前提条件
+
+- antiX（runit 使用のシステム）
+- パッケージインストールのためインターネット接続が必要
+- 実行時に root 権限が必要（`sudo`）
+
+### インストール方法（GitHub から）
+
+#### 方法1: ダウンロードして実行（推奨）
+
+```bash
+curl -fsSL -o /tmp/antix-install-tailscale \
+  https://raw.githubusercontent.com/hirogura/scripts/main/antix-install-tailscale
+sudo bash /tmp/antix-install-tailscale
+```
+
+#### 方法2: ワンライナー（パイプ実行）
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/hirogura/scripts/main/antix-install-tailscale \
+  | sudo bash
+```
+
+> 実行するとブラウザで Tailscale への認証が開きます。認証が完了すると tailnet に参加します。
+
+### インストール後にできること
+
+- `tailscale` / `tailscaled` コマンドが利用できます。
+- tailscaled は root レベルの runit サービス（`/etc/sv/tailscaled`）として登録されるため、再起動後も自動的に起動します。
+- 認証済みの状態は `/var/lib/tailscale/tailscaled.state` に保存されます。
+
+### アンインストール方法
+
+```bash
+sudo bash /tmp/antix-install-tailscale -u
+```
+
+> アンインストールすると tailnet から退出し、状態データ（`/var/lib/tailscale`）も削除されます。再インストール時は改めて認証が必要です。必要に応じて Tailscale 管理コンソール（https://login.tailscale.com/admin）からこのマシンを削除してください。
 
 ---
 

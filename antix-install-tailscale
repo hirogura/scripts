@@ -1,0 +1,155 @@
+#!/bin/bash
+# ============================================================
+#  Tailscale インストールスクリプト
+#  antiX（runit init）向け
+#
+#  インストール方法（GitHub から）:
+#    1) curl -fsSL -o /tmp/antix-install-tailscale \
+#       https://raw.githubusercontent.com/hirogura/scripts/main/antix-install-tailscale
+#    2) sudo bash /tmp/antix-install-tailscale
+#    ワンライナー（パイプ実行）でも可:
+#       curl -fsSL https://raw.githubusercontent.com/hirogura/scripts/main/antix-install-tailscale \
+#         | sudo bash
+#  アンインストール方法は README.md を参照
+#
+#  使い方:
+#    sudo bash antix-install-tailscale              # インストール（既定）
+#    sudo bash antix-install-tailscale -u           # アンインストール
+#    sudo bash antix-install-tailscale -h           # ヘルプ表示
+# ============================================================
+
+set -euo pipefail
+
+usage() {
+    echo "使い方:"
+    echo "  sudo bash $0              # インストール（既定）"
+    echo "  sudo bash $0 -u           # アンインストール"
+    echo "  sudo bash $0 -h           # このヘルプを表示"
+    echo ""
+    echo "インストール:"
+    echo "  curl -fsSL -o /tmp/antix-install-tailscale \\"
+    echo "    https://raw.githubusercontent.com/hirogura/scripts/main/antix-install-tailscale"
+    echo "  sudo bash /tmp/antix-install-tailscale"
+    echo "アンインストール:"
+    echo "  sudo bash /tmp/antix-install-tailscale -u"
+}
+
+MODE=install
+for arg in "$@"; do
+    case "$arg" in
+        -h|--help)      usage; exit 0 ;;
+        -u|--uninstall) MODE=uninstall ;;
+        *)              echo "不明なオプション: $arg" >&2; usage; exit 1 ;;
+    esac
+done
+
+# --- root権限チェック ---
+if [ "$(id -u)" -ne 0 ]; then
+    echo "エラー: このスクリプトは root権限で実行してください。"
+    echo "例: sudo bash $0"
+    exit 1
+fi
+
+# ------------------------------------------------------------
+# インストール
+# ------------------------------------------------------------
+install() {
+    echo "=== antiX Tailscale インストール開始 ==="
+    echo
+
+    # --- 既にインストール済みか確認 ---
+    if command -v tailscale >/dev/null 2>&1 && [ -d /etc/sv/tailscaled ]; then
+        echo "Tailscale は既にインストールされています。"
+        tailscale version
+        echo "認証が必要な場合は以下を実行してください。"
+        echo "  sudo tailscale up"
+        exit 0
+    fi
+
+    # --- 必要パッケージの準備 ---
+    echo "[1/4] 必要パッケージ（curl）を準備しています..."
+    apt-get update
+    apt-get install -y curl
+
+    # --- Tailscale インストール ---
+    echo "[2/4] Tailscale をインストールしています..."
+    curl -fsSL https://tailscale.com/install.sh | sh
+
+    # --- tailscaled 実行パスを確認 ---
+    TAILSCALED_BIN=$(command -v tailscaled)
+    echo "tailscaled のパス: $TAILSCALED_BIN"
+
+    # --- 状態保存用ディレクトリ ---
+    echo "[3/4] runit サービスを設定しています..."
+    mkdir -p /var/lib/tailscale
+
+    # --- runit用サービスディレクトリを作成 ---
+    mkdir -p /etc/sv/tailscaled
+
+    tee /etc/sv/tailscaled/run > /dev/null << EOF
+#!/bin/sh
+exec ${TAILSCALED_BIN} --state=/var/lib/tailscale/tailscaled.state --socket=/run/tailscale/tailscaled.sock 2>&1
+EOF
+
+    chmod +x /etc/sv/tailscaled/run
+
+    # --- サービス有効化（自動起動設定） ---
+    ln -sf /etc/sv/tailscaled /etc/service/tailscaled
+
+    # --- 起動待機 & 状態確認 ---
+    sleep 2
+    sv status tailscaled
+
+    # --- 認証 ---
+    echo "[4/4] ブラウザで認証します..."
+    tailscale up
+
+    echo
+    echo "=== インストール完了 ==="
+    echo "認証が完了すると、このマシンが tailnet に参加します。"
+}
+
+# ------------------------------------------------------------
+# アンインストール
+# ------------------------------------------------------------
+uninstall() {
+    echo "=== antiX Tailscale アンインストール開始 ==="
+    echo
+
+    # --- サービスの停止・無効化 ---
+    echo "[1/5] runit サービスを停止・削除しています..."
+    if [ -L /etc/service/tailscaled ]; then
+        sv stop tailscaled 2>/dev/null || true
+        rm -f /etc/service/tailscaled
+    fi
+    rm -rf /etc/sv/tailscaled
+
+    # --- tailnet から退出 ---
+    echo "[2/5] tailnet から退出しています..."
+    tailscale down 2>/dev/null || true
+
+    # --- パッケージの削除 ---
+    echo "[3/5] Tailscale パッケージを削除しています..."
+    apt-get purge -y tailscale tailscale-archive-keyring
+    apt-get autoremove -y
+
+    # --- リポジトリと GPG キーの削除 ---
+    echo "[4/5] リポジトリと GPG キーを削除しています..."
+    rm -f /etc/apt/sources.list.d/tailscale.list
+    rm -f /usr/share/keyrings/tailscale-archive-keyring.gpg
+    apt-get update
+
+    # --- 状態データの削除 ---
+    echo "[5/5] 状態データを削除しています..."
+    rm -rf /var/lib/tailscale
+
+    echo
+    echo "=== アンインストール完了 ==="
+    echo "注意: 状態データ（/var/lib/tailscale）を削除したため、"
+    echo "このマシンは Tailscale 管理コンソールから削除してください。"
+}
+
+case "$MODE" in
+    install)   install ;;
+    uninstall) uninstall ;;
+esac
