@@ -17,6 +17,7 @@
 | `antix-install-chrome.sh` | ブラウザ Google Chrome を antiX にインストール。デスクトップショートカットも自動で作成 |
 | `antix-install-vscode.sh` | エディター Visual Studio Code を antiX にインストール。日本語言語パック適用とデスクトップショートカット作成を自動で実行 |
 | `antix-install-tailscale` | VPN サービス Tailscale を antiX にインストール。runit サービスとして登録し再起動後も自動起動 |
+| `antix-install-krita.sh` | ペイントアプリ Krita を antiX にインストール。デスクトップショートカットも自動で作成 |
 | `antix-mouse.sh` | デスクトップアイコンのクリック動作を「シングルクリック=選択 / ダブルクリック=実行」に変更（ZzzFM / ROX-Filer / Nautilus / Caja / Nemo / Thunar / Dolphin） |
 
 ---
@@ -390,7 +391,7 @@ curl -fsSL https://raw.githubusercontent.com/hirogura/scripts/main/antix-desktop
 | `shutdown.desktop` | シャットダウン |
 | `reboot.desktop` | 再起動 |
 
-> Google Chrome / Thunderbird / VLC / XnView MP / VS Code 等のアプリのショートカットは、各インストールスクリプト（`antix-install-chrome.sh` 等）がインストール時に自動で作成します。
+> Google Chrome / Thunderbird / VLC / XnView MP / VS Code / Krita 等のアプリのショートカットは、各インストールスクリプト（`antix-install-chrome.sh` 等）がインストール時に自動で作成します。
 > シャットダウン / 再起動は antiX 標準の `desktop-session-exit` を使用します。antiX には `/etc/sudoers.d/antixers` で `poweroff` / `reboot` の NOPASSWD ルールが最初から設定されているため、パスワード入力なしで実行できます。
 
 ### ショートカット削除方法
@@ -563,6 +564,46 @@ sudo bash /tmp/antix-install-tailscale -u
 ```
 
 > アンインストールすると tailnet から退出し、状態データ（`/var/lib/tailscale`）も削除されます。再インストール時は改めて認証が必要です。必要に応じて Tailscale 管理コンソール（https://login.tailscale.com/admin）からこのマシンを削除してください。
+
+---
+
+## antix-install-krita.sh
+
+### 前提条件
+
+- antiX（runit 使用のシステム）
+- パッケージインストールのためインターネット接続が必要
+- 実行時に root 権限が必要（`sudo`）
+
+### インストール方法（GitHub から）
+
+#### 方法1: ダウンロードして実行（推奨）
+
+```bash
+curl -fsSL -o /tmp/antix-install-krita.sh \
+  https://raw.githubusercontent.com/hirogura/scripts/main/antix-install-krita.sh
+sudo bash /tmp/antix-install-krita.sh
+```
+
+#### 方法2: ワンライナー（パイプ実行）
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/hirogura/scripts/main/antix-install-krita.sh \
+  | sudo bash
+```
+
+### インストール後にできること
+
+- デスクトップメニュー、デスクトップのショートカット、または `krita` コマンドから起動できます。
+- `sudo` で実行したユーザーのデスクトップ（`~/Desktop`）に `krita.desktop` のショートカットが自動で作成されます。
+
+### アンインストール方法
+
+```bash
+sudo bash /tmp/antix-install-krita.sh -u
+```
+
+> アンインストールすると、`sudo` で実行したユーザーの設定（`~/.config/krita` 等）も削除されます。
 
 ---
 
