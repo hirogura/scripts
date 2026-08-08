@@ -509,7 +509,7 @@ curl -fsSL https://raw.githubusercontent.com/hirogura/scripts/main/antix-install
 
 - デスクトップメニュー、デスクトップのショートカット、または `code` コマンドから起動できます。
 - 日本語言語パック（`MS-CEINTL.vscode-language-pack-ja`）が `sudo` で実行したユーザー向けに自動インストールされます。
-- `sudo` で実行したユーザーのデスクトップ（`~/Desktop`）に `vscode.desktop` のショートカットが自動で作成されます。
+- `sudo` で実行したユーザーのデスクトップ（`~/Desktop`）に `code.desktop` のショートカットが自動で作成されます。
 
 ### アンインストール方法
 

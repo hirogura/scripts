@@ -115,19 +115,11 @@ create_shortcut() {
     echo "=== デスクトップショートカット作成 ==="
     mkdir -p "$REAL_HOME/Desktop"
 
-    cat > "$REAL_HOME/Desktop/vscode.desktop" << 'EOF'
-[Desktop Entry]
-Type=Application
-Name=Visual Studio Code
-Comment=エディター
-Exec=/usr/bin/code %F
-Icon=vscode
-Terminal=false
-Categories=Development;IDE;
-EOF
+    # 公式の desktop ファイルをコピー（アイコン表示がツールバーマネージャと同じになる）
+    cp /usr/share/applications/code.desktop "$REAL_HOME/Desktop/code.desktop"
 
-    chmod +x "$REAL_HOME/Desktop/vscode.desktop"
-    echo "デスクトップに vscode.desktop を作成しました。"
+    chmod +x "$REAL_HOME/Desktop/code.desktop"
+    echo "デスクトップに code.desktop を作成しました。"
 }
 
 # ------------------------------------------------------------
@@ -139,7 +131,7 @@ uninstall() {
 
     # --- デスクトップショートカットの削除 ---
     echo "[1/4] デスクトップショートカットを削除しています..."
-    rm -f "$REAL_HOME/Desktop/vscode.desktop"
+    rm -f "$REAL_HOME/Desktop/code.desktop"
 
     # --- リポジトリと GPG キーの削除 ---
     echo "[2/4] リポジトリと GPG キーを削除しています..."
