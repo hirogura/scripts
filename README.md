@@ -704,10 +704,11 @@ curl -fsSL https://raw.githubusercontent.com/hirogura/scripts/main/code-server-o
 | 1 行上へ | `Ctrl+Alt+Y` | `Control+Option+Y` |
 | 会話の先頭へ | `Ctrl+G` または `Home` | `Control+G` または `Fn+←` |
 | 会話の末尾へ | `Ctrl+Alt+G` または `End` | `Control+Option+G` または `Fn+→` |
-| スクロールバー表示の切り替え | `Ctrl+Alt+S` | `Control+Option+S` |
+| スクロールバー表示の切り替え | `Ctrl+Alt+S` または `F12` | `Control+Option+S` または `F12` |
 
 > macOS のキーボードでは `Alt` が `Option`、`Ctrl` が `Control` に対応します。
 > ファンクションキーは `Fn` を押しながら `↑/↓/←/→` で `PageUp / PageDown / Home / End` になります。
+> スクロールバーの切り替えに `Ctrl+Alt+S`（macOS: `Control+Option+S`）が OS やブラウザに横取りされる場合は、`F12` を使ってください。
 
 ### アンインストール方法
 

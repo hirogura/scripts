@@ -84,7 +84,7 @@ TUI_JSON='{
   "$schema": "https://opencode.ai/tui.json",
   "mouse": false,
   "keybinds": {
-    "scrollbar_toggle": "ctrl+alt+s"
+    "scrollbar_toggle": "ctrl+alt+s,f12"
   }
 }'
 
@@ -136,7 +136,7 @@ setup() {
     echo "  Ctrl+Alt+U / Ctrl+Alt+D        半ページ"
     echo "  Ctrl+Alt+Y / Ctrl+Alt+E        1 行"
     echo "  Ctrl+G / Home                  先頭 / Ctrl+Alt+G / End 末尾"
-    echo "  Ctrl+Alt+S                     スクロールバー表示切替（位置のみ）"
+    echo "  Ctrl+Alt+S / F12               スクロールバー表示切替（位置のみ）"
 }
 
 uninstall() {
