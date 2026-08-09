@@ -19,6 +19,7 @@
 | `antix-install-tailscale` | VPN サービス Tailscale を antiX にインストール。runit サービスとして登録し再起動後も自動起動 |
 | `antix-install-krita.sh` | ペイントアプリ Krita を antiX にインストール。日本語パック（krita-l10n）もリポジトリにあれば導入し、デスクトップショートカットも自動で作成 |
 | `antix-mouse.sh` | デスクトップアイコンのクリック動作を「シングルクリック=選択 / ダブルクリック=実行」に変更（ZzzFM / ROX-Filer / Nautilus / Caja / Nemo / Thunar / Dolphin） |
+| `code-server-opencode-scroll.sh` | code-server（ブラウザ上の VS Code）で opencode のマウスモードを無効化し、キーボードだけでスクロールできるように設定 |
 
 ---
 
@@ -649,6 +650,72 @@ bash /tmp/antix-mouse.sh -u
 ```
 
 > アンインストールするとデスクトップアイコンのクリック動作が「シングルクリック=実行」のデフォルトに戻ります。
+
+---
+
+## code-server-opencode-scroll.sh
+
+code-server（ブラウザ上の VS Code = xterm.js ターミナル）で opencode TUI を使うとき、マウスモードを無効化してブラウザのテキスト選択・コピーを機能させつつ、スクロールはキーボードだけで行えるようにします。
+
+### 前提条件
+
+- code-server で opencode を使っている環境
+- opencode がインストール済み（`opencode` コマンド）
+- 設定は実行ユーザーのホームディレクトリ（`~/.opencode`）に書き込むため、**通常ユーザーで実行**してください（`sudo` は不要）
+
+### インストール方法（GitHub から）
+
+#### 方法1: ダウンロードして実行（推奨）
+
+```bash
+curl -fsSL -o /tmp/code-server-opencode-scroll.sh \
+  https://raw.githubusercontent.com/hirogura/scripts/main/code-server-opencode-scroll.sh
+bash /tmp/code-server-opencode-scroll.sh
+```
+
+#### 方法2: ワンライナー（パイプ実行）
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/hirogura/scripts/main/code-server-opencode-scroll.sh \
+  | bash
+```
+
+> 注意: このスクリプトは `sudo` で実行せず、設定を変更したいユーザーで実行してください。
+> `sudo` で実行すると `/root` の設定が変更されてしまいます。
+
+### インストール後にできること
+
+- opencode のマウスモードが無効になります（`~/.opencode/tui.json` の `"mouse": false`）。
+- マウスでコードを選択・コピーできるようになり、スクロールはキーボードで行えます。
+- 既存の `tui.json` は `tui.json.bak.<タイムスタンプ>` にバックアップされます。
+- `tui.json` は **opencode の起動時**に読み込まれるため、開いている opencode は一度終了して起動し直してください。
+
+### キーボード操作
+
+マウスモード無効時のスクロール操作です。`Ctrl` は Windows / Linux 共通です。
+
+| 操作 | Windows / Linux | macOS |
+|------|-----------------|-------|
+| 1 ページ下へ | `PageDown` | `Fn+↓`（または `PageDown`） |
+| 1 ページ上へ | `PageUp` | `Fn+↑`（または `PageUp`） |
+| 半ページ下へ | `Ctrl+Alt+D` | `Control+Option+D` |
+| 半ページ上へ | `Ctrl+Alt+U` | `Control+Option+U` |
+| 1 行下へ | `Ctrl+Alt+E` | `Control+Option+E` |
+| 1 行上へ | `Ctrl+Alt+Y` | `Control+Option+Y` |
+| 会話の先頭へ | `Ctrl+G` または `Home` | `Control+G` または `Fn+←` |
+| 会話の末尾へ | `Ctrl+Alt+G` または `End` | `Control+Option+G` または `Fn+→` |
+| スクロールバー表示の切り替え | `Ctrl+Alt+S` | `Control+Option+S` |
+
+> macOS のキーボードでは `Alt` が `Option`、`Ctrl` が `Control` に対応します。
+> ファンクションキーは `Fn` を押しながら `↑/↓/←/→` で `PageUp / PageDown / Home / End` になります。
+
+### アンインストール方法
+
+```bash
+bash /tmp/code-server-opencode-scroll.sh -u
+```
+
+> アンインストールすると `~/.opencode/tui.json` が削除されます。インストール時に作成したバックアップ（`tui.json.bak.<タイムスタンプ>`）があれば、その内容が復元されます。
 
 ---
 
