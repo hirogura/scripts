@@ -20,6 +20,7 @@
 | `antix-install-krita.sh` | ペイントアプリ Krita を antiX にインストール。日本語パック（krita-l10n）もリポジトリにあれば導入し、デスクトップショートカットも自動で作成 |
 | `antix-mouse.sh` | デスクトップアイコンのクリック動作を「シングルクリック=選択 / ダブルクリック=実行」に変更（ZzzFM / ROX-Filer / Nautilus / Caja / Nemo / Thunar / Dolphin） |
 | `code-server-opencode-scroll.sh` | code-server（ブラウザ上の VS Code）で opencode のマウスモードを無効化し、キーボードだけでスクロールできるように設定 |
+| `ubu-ntfs.sh` | NTFS ディスク（Windows 11 の高速スタートアップ/休止状態・未クリーン状態含む）を検出して安全にマウントするスクリプト。Windows 11 で `Windows is hibernated, refused to mount.` となる場合の修復に対応 |
 
 ---
 
@@ -717,6 +718,95 @@ bash /tmp/code-server-opencode-scroll.sh -u
 ```
 
 > アンインストールすると `~/.opencode/tui.json` が削除されます。インストール時に作成したバックアップ（`tui.json.bak.<タイムスタンプ>`）があれば、その内容が復元されます。
+
+---
+
+## ubu-ntfs.sh
+
+NTFS ディスクを Linux（Ubuntu 等）でマウントするためのスクリプトです。
+
+Windows 11 では「高速スタートアップ (Fast Startup)」や休止状態の影響で、NTFS ボリュームに「休止済み/hibernated」フラグが残り、ntfs-3g が
+
+```
+Windows is hibernated, refused to mount.
+```
+
+というエラーで読み書きマウントを拒否することがあります。このスクリプトは状態を自動検出し、安全にマウントします。
+
+### 前提条件
+
+- root 権限（`sudo`）で実行すること
+- インストールに `curl`、実行に `ntfs-3g` / `ntfs-3g.probe` / `ntfsfix` / `lsblk` が必要
+
+```bash
+# Debian / Ubuntu の場合
+sudo apt-get install -y curl ntfs-3g util-linux
+# RHEL 系の場合  sudo dnf install -y curl ntfs-3g util-linux
+# Arch 系の場合  sudo pacman -S --noconfirm curl ntfs-3g util-linux
+```
+
+### インストール方法（GitHub から）
+
+#### 方法1: ダウンロードしてインストール（推奨）
+
+```bash
+curl -fsSL -o /tmp/ubu-ntfs.sh \
+  https://raw.githubusercontent.com/hirogura/scripts/main/ubu-ntfs.sh
+sudo mkdir -p /opt/ubu-ntfs
+sudo install -m 0755 /tmp/ubu-ntfs.sh /opt/ubu-ntfs/ubu-ntfs.sh
+```
+
+#### 方法2: ワンライナー（パイプで直接設置）
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/hirogura/scripts/main/ubu-ntfs.sh \
+  | sudo tee /opt/ubu-ntfs/ubu-ntfs.sh >/dev/null
+sudo chmod 0755 /opt/ubu-ntfs/ubu-ntfs.sh
+```
+
+### 使い方
+
+`sudo` で実行してください。
+
+```bash
+# すべての NTFS パーティションを検出してマウント
+sudo /opt/ubu-ntfs/ubu-ntfs.sh
+
+# 指定したデバイスだけマウント
+sudo /opt/ubu-ntfs/ubu-ntfs.sh /dev/vdb3
+
+# 読み取り専用でマウント（休止中・未クリーンでも安全）
+sudo /opt/ubu-ntfs/ubu-ntfs.sh -r /dev/vdb3
+
+# 休止状態(unclean)フラグを処理して読み書きマウント
+sudo /opt/ubu-ntfs/ubu-ntfs.sh -k /dev/vdb3
+
+# このスクリプトでマウントしたボリュームを全てアンマウント
+sudo /opt/ubu-ntfs/ubu-ntfs.sh -u
+
+# ヘルプ
+sudo /opt/ubu-ntfs/ubu-ntfs.sh -h
+```
+
+> `-k`（`--fix`）は、休止状態なら `remove_hiberfile`、未クリーン（`unclean`）なら `ntfsfix` を実行してから読み書きマウントします。
+> どちらの場合も **Windows 側の休止状態イメージ（未保存データ）は破棄されます**。重要な未保存データがないことを確認してから実行してください。
+
+### マウント先
+
+- マウント先は `${NTFS_MOUNT_BASE:-/mnt}/win_<ラベル>` です（ラベルが無い場合は `win_<デバイス名>`）
+- 例: `/mnt/win_Local Disk`, `/mnt/win_vdb3`
+- ベースディレクトリは環境変数 `NTFS_MOUNT_BASE` で変更できます
+
+### アンインストール方法
+
+```bash
+sudo /opt/ubu-ntfs/ubu-ntfs.sh -u   # マウントを解放
+sudo rm -f /opt/ubu-ntfs/ubu-ntfs.sh
+```
+
+### 補足
+
+- Windows 11 で「高速スタートアップを有効にする」をオフ（コントロールパネル → 電源オプション → システム設定）にして完全シャットダウンすると、休止状態フラグが付かず通常どおりマウントできるようになります。
 
 ---
 
