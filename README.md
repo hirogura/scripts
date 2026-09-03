@@ -21,6 +21,7 @@
 | `antix-mouse.sh` | デスクトップアイコンのクリック動作を「シングルクリック=選択 / ダブルクリック=実行」に変更（ZzzFM / ROX-Filer / Nautilus / Caja / Nemo / Thunar / Dolphin） |
 | `code-server-opencode-scroll.sh` | code-server（ブラウザ上の VS Code）で opencode のマウスモードを無効化し、キーボードだけでスクロールできるように設定 |
 | `ubu-ntfs.sh` | NTFS ディスク（Windows 11 の高速スタートアップ/休止状態・未クリーン状態含む）を検出して安全にマウントするスクリプト。Windows 11 で `Windows is hibernated, refused to mount.` となる場合の修復に対応 |
+| `cachyos-mozcjp.sh` | CachyOS（Arch 系）で KDE Plasma Wayland に Fcitx5 + Mozc による日本語入力をセットアップ。キーボードレイアウト変更・fcitx5 プロファイル設定も自動化 |
 
 ---
 
@@ -807,6 +808,53 @@ sudo rm -f /opt/ubu-ntfs/ubu-ntfs.sh
 ### 補足
 
 - Windows 11 で「高速スタートアップを有効にする」をオフ（コントロールパネル → 電源オプション → システム設定）にして完全シャットダウンすると、休止状態フラグが付かず通常どおりマウントできるようになります。
+
+---
+
+## cachyos-mozcjp.sh
+
+CachyOS（Arch 系）で KDE Plasma Wayland 上に Fcitx5 + Mozc による日本語入力をセットアップするスクリプトです。手動で行っていた以下の操作をすべて自動化します:
+
+- `fcitx5-im` / `fcitx5-mozc` のインストール
+- KWin の入力メソッドを Fcitx 5 Wayland ランチャーに設定（`~/.config/kwinrc`）
+- キーボードレイアウトを日本語 (jp) のみに変更（`~/.config/kxkbrc`）
+- fcitx5 プロファイルに mozc を追加（`~/.config/fcitx5/profile`）
+
+### 前提条件
+
+- CachyOS（または Arch 系ディストリビューション）＋ KDE Plasma Wayland
+- パッケージインストールのためインターネット接続が必要
+- 通常ユーザーで実行してください（pacman の部分は自動で `sudo` を使用します）
+
+### インストール方法（GitHub から）
+
+#### 方法1: ダウンロードして実行（推奨）
+
+```bash
+curl -fsSL -o /tmp/cachyos-mozcjp.sh \
+  https://raw.githubusercontent.com/hirogura/scripts/main/cachyos-mozcjp.sh
+bash /tmp/cachyos-mozcjp.sh
+```
+
+#### 方法2: ワンライナー（パイプ実行）
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/hirogura/scripts/main/cachyos-mozcjp.sh \
+  | bash
+```
+
+> 注意: このスクリプトは `sudo bash` ではなく**通常ユーザーで実行**してください。
+> `sudo` で実行しても内部で `SUDO_USER` を検出し正しいユーザーの設定ファイルに書き込みますが、通常ユーザーでの実行を推奨します。
+
+### インストール後にできること
+
+- `Ctrl+Space` または「ひらがな」キーで 日本語 (mozc) と 直接入力を切り替えられます。
+- mozc の詳細設定は `fcitx5-configtool`（またはシステム設定 > 地域 > 入力メソッド）から変更できます。
+
+### 注意事項
+
+- 反映には一度ログアウト → 再ログイン（または KWin の再起動）が必要です。
+- fcitx5 が二重起動して通知が出る場合、`/etc/xdg/autostart/org.fcitx.Fcitx5.desktop` をリネームして無効化すると直ることがあります（ArchWiki 推奨）。
 
 ---
 
