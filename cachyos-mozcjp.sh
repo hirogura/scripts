@@ -81,9 +81,23 @@ set_ini() {
 # システム設定 > キーボード > 仮想キーボード > "Fcitx 5 Wayland ランチャー" に相当
 # (KWin がこの .desktop ファイルの Exec 行を起動して fcitx5 を入力メソッドとして立ち上げる)
 echo "[2/4] kwinrc に Fcitx 5 Wayland ランチャーを設定します"
-LAUNCHER_DESKTOP="/usr/share/applications/fcitx5-wayland-launcher.desktop"
-if [ ! -f "$LAUNCHER_DESKTOP" ] && [ -f "/usr/share/applications/org.fcitx.Fcitx5.desktop" ]; then
-    LAUNCHER_DESKTOP="/usr/share/applications/org.fcitx.Fcitx5.desktop"
+# 複数の候補から実際にインストールされた .desktop を自動検出する
+# (CachyOS/Plasma6 ではファイル名が変わることがあるため)
+LAUNCHER_DESKTOP=""
+if [ -d /usr/share/applications ]; then
+    LAUNCHER_DESKTOP="$(grep -rl 'X-KDE-Wayland-VirtualKeyboard=true' /usr/share/applications 2>/dev/null | head -n 1 || true)"
+fi
+for cand in \
+    /usr/share/applications/fcitx5-wayland-launcher.desktop \
+    /usr/share/applications/org.fcitx.Fcitx5.desktop \
+    /usr/share/applications/fcitx5.desktop; do
+    if [ -z "$LAUNCHER_DESKTOP" ] && [ -f "$cand" ]; then
+        LAUNCHER_DESKTOP="$cand"
+    fi
+done
+if [ -z "$LAUNCHER_DESKTOP" ]; then
+    echo "    警告: Fcitx 5 Wayland ランチャーの .desktop が見つかりませんでした" >&2
+    LAUNCHER_DESKTOP="/usr/share/applications/fcitx5-wayland-launcher.desktop"
 fi
 set_ini "$CONF_DIR/kwinrc" "Wayland" "InputMethod" "$LAUNCHER_DESKTOP"
 echo
