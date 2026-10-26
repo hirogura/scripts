@@ -816,7 +816,8 @@ sudo rm -f /opt/ubu-ntfs/ubu-ntfs.sh
 CachyOS（Arch 系）で KDE Plasma Wayland 上に Fcitx5 + Mozc による日本語入力をセットアップするスクリプトです。手動で行っていた以下の操作をすべて自動化します:
 
 - `fcitx5-im` / `fcitx5-mozc` のインストール
-- KWin の入力メソッドを Fcitx 5 Wayland ランチャーに設定（`~/.config/kwinrc`）
+- KWin の入力メソッドを Fcitx 5 Wayland ランチャーに設定（`~/.config/kwinrc`）。「システム設定 > キーボード > 仮想キーボード」で選ぶ作業は不要になります
+- fcitx5 の自動起動を無効化し、KWin から起動させる（`~/.config/autostart/org.fcitx.Fcitx5.desktop`）
 - キーボードレイアウトを日本語 (jp) のみに変更（`~/.config/kxkbrc`）
 - fcitx5 プロファイルに mozc を追加（`~/.config/fcitx5/profile`）
 
@@ -854,7 +855,7 @@ curl -fsSL https://raw.githubusercontent.com/hirogura/scripts/main/cachyos-mozcj
 ### 注意事項
 
 - 反映には一度ログアウト → 再ログイン（または KWin の再起動）が必要です。
-- fcitx5 が二重起動して通知が出る場合、`/etc/xdg/autostart/org.fcitx.Fcitx5.desktop` をリネームして無効化すると直ることがあります（ArchWiki 推奨）。
+- 「KWin から Fcitx を起動する必要があります」という通知が出る場合は、fcitx5 が KWin 以外（自動起動など）から起動されています。このスクリプトは Wayland ランチャーの設定と自動起動の無効化を行うため、再ログインすれば通知は出なくなります。
 
 ---
 
