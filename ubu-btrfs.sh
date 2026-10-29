@@ -4,6 +4,7 @@
 #  実行環境: ライブUSB環境のターミナル
 #  構成A: EFI + btrfs の2パーティション構成
 #  構成B: EFI + ext4(/boot) + btrfs の3パーティション構成
+#  構成C: EFI + ext4(/boot) + btrfs + ext4(/iso) の4パーティション構成
 #  EFI（UEFI）/ BIOS（Legacy）両対応
 #  使い方  : sudo bash ubu-btrfs.sh
 # ============================================================
@@ -17,6 +18,22 @@ error() { echo -e "${RED}[ERROR]${NC} $*"; exit 1; }
 step()  { echo -e "\n${CYAN}=== $* ===${NC}"; }
 
 [[ $EUID -ne 0 ]] && error "sudo で実行してください"
+
+# ============================================================
+# Step 0: 現在の btrfs マウント状況を表示して確認
+# ============================================================
+step "Step 0: 現在の btrfs マウント状況"
+
+echo "\$ mount | grep btrfs"
+if mount | grep btrfs; then
+    :
+else
+    echo "（btrfs のマウントはありません）"
+fi
+echo ""
+echo -e "${YELLOW}サブボリューム移行スクリプトを実行します。${NC}"
+echo "  続行するには Enter を押してください（中止: Ctrl+C）"
+read -r _
 
 # ============================================================
 # 環境検出
@@ -61,21 +78,112 @@ else
 fi
 
 # ============================================================
-# /boot 独立パーティション検出
-# EFI・btrfs 以外の ext2/3/4 → /boot 独立パーティションと判断
+# /boot・/iso 独立パーティション検出
+# EFI・btrfs 以外の ext2/3/4 を候補とし、役割を判定する
+#   1つ  → /boot
+#   2つ  → /boot と /iso（ラベル・中身から判定、不明なら手動選択）
 # ============================================================
 BOOT_PART=""
 BOOT_FS=""
+ISO_PART=""
+ISO_FS=""
 
-for part in $(lsblk -lnpo NAME,FSTYPE "$DISK" | awk '$2 ~ /^ext[234]$/ {print $1}'); do
-    [[ "$part" == "$EFI_PART" ]] && continue
-    [[ "$part" == "$BTRFS_PART" ]] && continue
-    BOOT_PART="$part"
-    BOOT_FS=$(lsblk -lnpo FSTYPE "$BOOT_PART" | head -1)
-    break
-done
+# パーティションの役割判定: boot / iso / unknown
+detect_role() {
+    local part="$1" label tmp role
+    label=$(lsblk -no LABEL "$part" 2>/dev/null | head -1 || true)
+    case "${label,,}" in
+        *iso*)  echo "iso";  return 0 ;;
+        *boot*) echo "boot"; return 0 ;;
+    esac
+    tmp=$(mktemp -d)
+    role="unknown"
+    if mount -o ro "$part" "$tmp" 2>/dev/null; then
+        if compgen -G "$tmp/vmlinuz*" > /dev/null || \
+           compgen -G "$tmp/initrd*"  > /dev/null || \
+           [[ -d "$tmp/grub" ]]; then
+            role="boot"
+        elif compgen -G "$tmp/*.iso" > /dev/null || [[ -d "$tmp/iso" ]]; then
+            role="iso"
+        fi
+        umount "$tmp" 2>/dev/null || true
+    fi
+    rmdir "$tmp" 2>/dev/null || true
+    echo "$role"
+}
+
+# ブロックデバイスを手動入力
+ask_part() {
+    local prompt="$1" ans
+    while true; do
+        read -rp "$prompt" ans
+        if [[ -b "$ans" ]]; then
+            echo "$ans"
+            return 0
+        fi
+        warn "ブロックデバイスではありません: $ans" >&2
+    done
+}
+
+EXT_PARTS=()
+while read -r p; do
+    [[ -z "$p" ]] && continue
+    [[ "$p" == "$EFI_PART" ]] && continue
+    [[ "$p" == "$BTRFS_PART" ]] && continue
+    EXT_PARTS+=("$p")
+done < <(lsblk -lnpo NAME,FSTYPE "$DISK" | awk '$2 ~ /^ext[234]$/ {print $1}')
+
+if (( ${#EXT_PARTS[@]} == 1 )); then
+    BOOT_PART="${EXT_PARTS[0]}"
+
+elif (( ${#EXT_PARTS[@]} >= 2 )); then
+    info "ext パーティションが ${#EXT_PARTS[@]} 個見つかりました。役割を判定します"
+    for p in "${EXT_PARTS[@]}"; do
+        role=$(detect_role "$p")
+        info "  $p → 判定: $role"
+        if [[ "$role" == "boot" && -z "$BOOT_PART" ]]; then
+            BOOT_PART="$p"
+        elif [[ "$role" == "iso" && -z "$ISO_PART" ]]; then
+            ISO_PART="$p"
+        fi
+    done
+
+    # 片方だけ判定できた場合、2個構成なら残りをもう一方とみなす
+    if (( ${#EXT_PARTS[@]} == 2 )); then
+        if [[ -n "$BOOT_PART" && -z "$ISO_PART" ]]; then
+            for p in "${EXT_PARTS[@]}"; do
+                [[ "$p" != "$BOOT_PART" ]] && ISO_PART="$p"
+            done
+        elif [[ -z "$BOOT_PART" && -n "$ISO_PART" ]]; then
+            for p in "${EXT_PARTS[@]}"; do
+                [[ "$p" != "$ISO_PART" ]] && BOOT_PART="$p"
+            done
+        fi
+    fi
+
+    # 判定できなかった場合は手動選択
+    if [[ -z "$BOOT_PART" || -z "$ISO_PART" ]]; then
+        warn "/boot と /iso を自動判定できませんでした。手動で指定してください"
+        lsblk -o NAME,SIZE,FSTYPE,LABEL,MOUNTPOINT "$DISK"
+        BOOT_PART=$(ask_part "  /boot にするパーティション (例: ${EXT_PARTS[0]}): ")
+        ISO_PART=$(ask_part  "  /iso  にするパーティション (例: ${EXT_PARTS[1]}): ")
+        [[ "$BOOT_PART" != "$ISO_PART" ]] || error "/boot と /iso に同じパーティションは指定できません"
+    fi
+fi
 
 if [[ -n "$BOOT_PART" ]]; then
+    BOOT_FS=$(lsblk -lnpo FSTYPE "$BOOT_PART" | head -1)
+fi
+if [[ -n "$ISO_PART" ]]; then
+    ISO_FS=$(lsblk -lnpo FSTYPE "$ISO_PART" | head -1)
+fi
+
+if [[ -n "$BOOT_PART" && -n "$ISO_PART" ]]; then
+    LAYOUT="4partition"
+    info "構成C: 4パーティション構成（EFI + /boot独立 + btrfs + /iso独立）"
+    info "独立 /boot パーティション: $BOOT_PART ($BOOT_FS)"
+    info "独立 /iso  パーティション: $ISO_PART ($ISO_FS)"
+elif [[ -n "$BOOT_PART" ]]; then
     LAYOUT="3partition"
     info "構成B: 3パーティション構成（EFI + /boot独立 + btrfs）"
     info "独立 /boot パーティション: $BOOT_PART ($BOOT_FS)"
@@ -97,6 +205,7 @@ else
     printf "  │  BIOS Boot           : %-21s│\n" "${BIOS_BOOT_PART:-（なし / MBR）}"
 fi
 printf "  │  /boot パーティション: %-21s│\n" "${BOOT_PART:-（なし / btrfs内）}"
+printf "  │  /iso  パーティション: %-21s│\n" "${ISO_PART:-（なし）}"
 printf "  │  ディスク            : %-21s│\n" "$DISK"
 echo "  └──────────────────────────────────────────┘"
 echo ""
@@ -114,26 +223,20 @@ read -r answer
 # ============================================================
 step "Step 1: Btrfsパーティションをマウント"
 
+umount_all_of() {
+    local src="$1" label="$2" mp
+    for mp in $(findmnt -rno TARGET --source "$src" 2>/dev/null | sort -r); do
+        [[ "$mp" == "/" ]] && continue
+        info "  解除 ($label): $mp"
+        umount "$mp" 2>/dev/null || umount -l "$mp" 2>/dev/null || true
+    done
+}
+
 info "既存マウントを解除"
-for mp in $(findmnt -rno TARGET --source "$BTRFS_PART" 2>/dev/null | sort -r); do
-    [[ "$mp" == "/" ]] && continue
-    info "  解除: $mp"
-    umount "$mp" 2>/dev/null || umount -l "$mp" 2>/dev/null || true
-done
-if [[ -n "${EFI_PART:-}" ]]; then
-    for mp in $(findmnt -rno TARGET --source "$EFI_PART" 2>/dev/null | sort -r); do
-        [[ "$mp" == "/" ]] && continue
-        info "  解除 (EFI): $mp"
-        umount "$mp" 2>/dev/null || umount -l "$mp" 2>/dev/null || true
-    done
-fi
-if [[ -n "$BOOT_PART" ]]; then
-    for mp in $(findmnt -rno TARGET --source "$BOOT_PART" 2>/dev/null | sort -r); do
-        [[ "$mp" == "/" ]] && continue
-        info "  解除 (/boot): $mp"
-        umount "$mp" 2>/dev/null || umount -l "$mp" 2>/dev/null || true
-    done
-fi
+umount_all_of "$BTRFS_PART" "btrfs"
+[[ -n "${EFI_PART:-}"  ]] && umount_all_of "$EFI_PART"  "EFI"
+[[ -n "${BOOT_PART:-}" ]] && umount_all_of "$BOOT_PART" "/boot"
+[[ -n "${ISO_PART:-}"  ]] && umount_all_of "$ISO_PART"  "/iso"
 
 mkdir -p /mnt
 mount "$BTRFS_PART" /mnt
@@ -152,13 +255,19 @@ cd /mnt
 info "スナップショット @ を作成"
 btrfs subvolume snapshot . @
 
-# 3パーティション構成: @/boot/ は空のマウントポイントにする
+# 3・4パーティション構成: @/boot/ は空のマウントポイントにする
 # 2パーティション構成: @/boot/ はそのまま残す（btrfs内にカーネルが必要）
-if [[ "$LAYOUT" == "3partition" ]]; then
+if [[ "$LAYOUT" != "2partition" ]]; then
     if [[ -d /mnt/@/boot ]]; then
         info "/boot 独立構成のため @/boot/ を空のマウントポイントとして準備"
         find /mnt/@/boot -mindepth 1 -delete
     fi
+fi
+
+# 4パーティション構成: /iso のマウントポイントを用意
+if [[ "$LAYOUT" == "4partition" ]]; then
+    info "/iso 独立構成のため @/iso/ をマウントポイントとして準備"
+    mkdir -p /mnt/@/iso
 fi
 
 info "サブボリューム @home を作成"
@@ -195,22 +304,31 @@ UUID=$(blkid -s UUID -o value "$BTRFS_PART")
 info "Btrfs UUID: $UUID"
 
 BOOT_UUID=""
-if [[ "$LAYOUT" == "3partition" ]]; then
+if [[ -n "$BOOT_PART" ]]; then
     BOOT_UUID=$(blkid -s UUID -o value "$BOOT_PART")
     [[ -n "$BOOT_UUID" ]] || error "/boot UUID の取得に失敗しました"
     info "/boot UUID: $BOOT_UUID"
 fi
 
+ISO_UUID=""
+if [[ -n "$ISO_PART" ]]; then
+    ISO_UUID=$(blkid -s UUID -o value "$ISO_PART")
+    [[ -n "$ISO_UUID" ]] || error "/iso UUID の取得に失敗しました"
+    info "/iso UUID: $ISO_UUID"
+fi
+
 cp "$FSTAB" "${FSTAB}.bak"
 info "バックアップ: ${FSTAB}.bak"
 
-python3 - "$FSTAB" "$UUID" "$BOOT_UUID" "${BOOT_FS:-}" << 'PYEOF'
+python3 - "$FSTAB" "$UUID" "$BOOT_UUID" "${BOOT_FS:-}" "$ISO_UUID" "${ISO_FS:-}" << 'PYEOF'
 import sys, re
 
 fstab_path = sys.argv[1]
-uuid        = sys.argv[2]
-boot_uuid   = sys.argv[3]
-boot_fs     = sys.argv[4]
+uuid       = sys.argv[2]
+boot_uuid  = sys.argv[3]
+boot_fs    = sys.argv[4]
+iso_uuid   = sys.argv[5]
+iso_fs     = sys.argv[6]
 
 with open(fstab_path) as f:
     lines = f.readlines()
@@ -218,6 +336,7 @@ with open(fstab_path) as f:
 new_lines = []
 has_home  = False
 has_boot  = False
+has_iso   = False
 
 for line in lines:
     stripped = line.strip()
@@ -244,6 +363,9 @@ for line in lines:
     elif mountpoint == "/boot" and boot_uuid:
         new_lines.append(f"UUID={boot_uuid} /boot {boot_fs} defaults 0 2\n")
         has_boot = True
+    elif mountpoint == "/iso" and iso_uuid:
+        new_lines.append(f"UUID={iso_uuid} /iso {iso_fs} defaults 0 2\n")
+        has_iso = True
     else:
         new_lines.append(line)
 
@@ -251,6 +373,8 @@ if not has_home:
     new_lines.append(f"UUID={uuid} /home btrfs defaults,subvol=@home 0 0\n")
 if boot_uuid and not has_boot:
     new_lines.append(f"UUID={boot_uuid} /boot {boot_fs} defaults 0 2\n")
+if iso_uuid and not has_iso:
+    new_lines.append(f"UUID={iso_uuid} /iso {iso_fs} defaults 0 2\n")
 
 with open(fstab_path, 'w') as f:
     f.writelines(new_lines)
@@ -270,13 +394,22 @@ info "subvol=@ で /mnt2 に再マウント完了"
 
 mkdir -p /mnt2/boot/grub
 
-# 3パーティション構成: chroot前に /boot をマウント
-if [[ "$LAYOUT" == "3partition" ]]; then
+# 3・4パーティション構成: chroot前に /boot をマウント
+if [[ -n "$BOOT_PART" ]]; then
     info "/boot ($BOOT_PART) を /mnt2/boot にマウント"
     mkdir -p /mnt2/boot
     mount "$BOOT_PART" /mnt2/boot
     info "  /mnt2/boot の内容:"
     ls /mnt2/boot/ || true
+fi
+
+# 4パーティション構成: /iso もマウント
+if [[ -n "$ISO_PART" ]]; then
+    info "/iso ($ISO_PART) を /mnt2/iso にマウント"
+    mkdir -p /mnt2/iso
+    mount "$ISO_PART" /mnt2/iso
+    info "  /mnt2/iso の内容:"
+    ls /mnt2/iso/ || true
 fi
 
 mount --rbind /dev  /mnt2/dev  && mount --make-rslave /mnt2/dev
@@ -315,9 +448,24 @@ CHROOT
 fi
 
 # ============================================================
-# Step 5: アンマウント
+# Step 5: 結果確認（アンマウント前に実行）
+# ライブUSB環境では「/」がライブ側のため、移行先の /mnt2 を対象にする
 # ============================================================
-step "Step 5: アンマウント"
+step "Step 5: 結果確認"
+
+echo "\$ mount | grep btrfs"
+mount | grep btrfs || echo "（btrfs のマウントはありません）"
+echo ""
+echo "\$ sudo btrfs subvolume list /mnt2   （移行先 = 再起動後の /）"
+btrfs subvolume list /mnt2 || warn "サブボリューム一覧の取得に失敗しました"
+echo ""
+echo "\$ cat /mnt2/etc/fstab   （移行先）"
+grep -vE '^\s*#|^\s*$' /mnt2/etc/fstab || true
+
+# ============================================================
+# Step 6: アンマウント
+# ============================================================
+step "Step 6: アンマウント"
 umount -R /mnt2 2>/dev/null || true
 umount -R /mnt  2>/dev/null || true
 
@@ -326,12 +474,14 @@ echo -e "${GREEN}======================================================"
 echo "  移行が完了しました！"
 echo "  構成: $LAYOUT"
 echo "  再起動後に以下で確認してください："
+echo "    mount | grep btrfs"
 echo "    sudo btrfs subvolume list /"
-if [[ "$LAYOUT" == "3partition" ]]; then
+if [[ -n "$BOOT_PART" ]]; then
 echo "    findmnt -T /boot"
+fi
+if [[ -n "$ISO_PART" ]]; then
+echo "    findmnt -T /iso"
 fi
 echo -e "======================================================${NC}"
 echo ""
-warn "再起動しますか？ [yes/N]"
-read -r reboot_answer
-[[ "$reboot_answer" == "yes" ]] && reboot || info "手動で再起動してください: sudo reboot"
+echo -e "${YELLOW}再起動してください: sudo reboot${NC}"
